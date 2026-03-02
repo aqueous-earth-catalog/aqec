@@ -21,6 +21,7 @@ export async function getMediaPoints() {
             latitude: fields.latitude,
             longitude: fields.longitude,
             location_name: fields.location_name,
+            location_description: fields.location_description,
             natural_feature_name: fields.natural_feature_name,
             city: fields.city,
             region: fields.region,

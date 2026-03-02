@@ -162,6 +162,13 @@ export function LocationDetails({ data }: LocationDetailsProps) {
             label="Language"
             value={selectedMediaPoint?.media?.language}
           />
+          {selectedMediaPoint?.location_description && (
+            <Metric
+              label="Location Description"
+              value={selectedMediaPoint?.location_description}
+              className="mt-3"
+            />
+          )}
           <Metric
             label="Summary"
             value={selectedMediaPoint?.media?.description || ""}
