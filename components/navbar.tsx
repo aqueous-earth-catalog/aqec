@@ -33,7 +33,7 @@ export default function Navbar({ title }: { title: string }) {
                   pathname === "/" ? ACTIVE_CLASSNAMES : INACTIVE_CLASSNAMES
                 )}
               >
-                Map View
+                Map
               </Link>
             </li>
             <li>
@@ -46,7 +46,7 @@ export default function Navbar({ title }: { title: string }) {
                     : INACTIVE_CLASSNAMES
                 )}
               >
-                Table View
+                Table
               </Link>
             </li>
             <li>
