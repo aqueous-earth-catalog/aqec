@@ -125,7 +125,7 @@ export function LocationDetails({ data }: LocationDetailsProps) {
                 Created by {selectedMediaPoint?.media?.director}
               </p>
               {selectedMediaPoint?.media?.video_link && (
-                <Button variant="outline" size="sm" asChild className="mt-2">
+                <Button variant="outline" size="sm" asChild className="my-2">
                   <Link
                     href={selectedMediaPoint?.media?.video_link}
                     target="_blank"
@@ -143,7 +143,7 @@ export function LocationDetails({ data }: LocationDetailsProps) {
           </div>
 
           {selectedMediaPoint?.media?.image?.url && (
-            <div className="relative w-full h-50 mt-2">
+            <div className="relative w-full h-50 mb-2">
               <Image
                 src={selectedMediaPoint.media.image.url || ""}
                 alt={`Image from ${
