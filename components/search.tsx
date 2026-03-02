@@ -45,7 +45,16 @@ export default function Search({ data }: { data: MediaLocation[] }) {
                 <CommandItem
                   key={media.id}
                   className="border-b border-gray-100 rounded-none"
-                  value={`${media.name} ${media?.city} ${media?.country} ${media.media?.release_year} ${media.region} ${media.location_name}`}
+                  value={[
+                    media.name,
+                    media?.city,
+                    media?.country,
+                    media.media?.release_year,
+                    media.region,
+                    media.location_name,
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
                   onSelect={() => {
                     const params = addQueryParameter("mediaPointId", media.id);
                     window.history.pushState({}, "", params);
