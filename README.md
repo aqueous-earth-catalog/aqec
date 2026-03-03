@@ -21,7 +21,7 @@ Media Mapper is designed to be a flexible, open-source web application framework
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 20.9.0+
 - npm, pnpm, or yarn
 - Airtable account with properly structured data
 - Mapbox account for map functionality
