@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { MediaLocation } from "@/lib/airtable/types";
 import { FILTER_PARAMS, removeQueryParameter } from "@/lib/utils";
+import { matchesSearch } from "@/lib/search";
 import { Button } from "./ui/button";
 import Search from "./search";
 import { ResultCard } from "./result-card";
@@ -52,23 +53,9 @@ export function MapDrawer({
 
   // Filter results by search text
   const searchedResults = useMemo(() => {
-    if (!searchValue.trim()) return filteredMediaPoints;
-
-    const query = searchValue.toLowerCase();
-    return filteredMediaPoints.filter((media) => {
-      const searchable = [
-        media.name,
-        media.city,
-        media.country,
-        media.media?.release_year?.toString(),
-        media.region,
-        media.location_name,
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-      return searchable.includes(query);
-    });
+    return filteredMediaPoints.filter((media) =>
+      matchesSearch(media, searchValue)
+    );
   }, [searchValue, filteredMediaPoints]);
 
   function handleBack() {
