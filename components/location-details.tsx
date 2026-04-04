@@ -77,7 +77,7 @@ export function LocationDetails({
           </div>
 
           {selectedMediaPoint?.media?.image?.url && (
-            <div className="relative w-full h-50 mb-2">
+            <div className="relative w-full h-50">
               <Image
                 src={selectedMediaPoint.media.image.url || ""}
                 alt={`Image from ${
@@ -91,7 +91,7 @@ export function LocationDetails({
             </div>
           )}
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className="p-0 mt-3">
           <Metric
             label="Language"
             value={selectedMediaPoint?.media?.language}
@@ -132,7 +132,7 @@ export function LocationDetails({
 
           {relatedMedia.length > 0 && (
             <>
-              <Label className="text-xs text-muted-foreground mt-3">
+              <Label className="text-xs font-semibold tracking-relaxed mt-3">
                 Associated Media Locations
               </Label>
               <ul className="ml-5 list-disc">

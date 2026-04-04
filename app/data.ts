@@ -1,54 +1,70 @@
 import { base, convertKeysToSnakeCase } from "@/lib/airtable";
+import { Media } from "@/lib/airtable/types";
 
 const MEDIA_LOCATION_TABLE_NAME = "Media Locations";
+const MEDIA_TABLE_NAME = "Media";
 const WEB_APP_METADATA_TABLE_NAME = "Web App Metadata";
 
-export async function getMediaPoints() {
-  const response = await base(MEDIA_LOCATION_TABLE_NAME)
-    .select({
-      view: process.env.AIRTABLE_VIEW_NAME,
-    })
-    .all()
-    .then((records) => {
-      return records
-        .filter((record) => record.fields.Latitude && record.fields.Longitude)
-        .map((record) => {
-          const fields = convertKeysToSnakeCase(record.fields);
+// Fetches Media records directly rather than relying on lookup fields on the
+// Media Locations table. Airtable lookup fields strip rich text (Markdown)
+// formatting, so we fetch from the source table to preserve it.
+async function getMedia(): Promise<Map<string, Media>> {
+  const records = await base(MEDIA_TABLE_NAME).select().all();
 
-          return {
-            id: record.id,
-            name: fields.name,
-            latitude: fields.latitude,
-            longitude: fields.longitude,
-            location_name: fields.location_name,
-            location_description: fields.location_description,
-            natural_feature_name: fields.natural_feature_name,
-            city: fields.city,
-            region: fields.region,
-            country: fields.country,
-            media: {
-              name: fields.name_from_media?.[0],
-              original_title: fields.original_title_from_media?.[0],
-              director: fields.director_from_media?.[0],
-              release_year: fields.release_year_from_media?.[0],
-              description: fields.description_from_media?.[0],
-              image: fields.image_from_media?.[0],
-              video: fields.video_from_media?.[0],
-              video_link: fields.video_link_from_media?.[0],
-              subjects: fields.subjects_from_media,
-              language: fields.language_from_media,
-              references: fields.references_from_media?.[0],
-              rights: fields.rights_from_media?.[0],
-              rights_statement_link:
-                fields.rights_statement_link_from_media?.[0],
-              media_type: fields.media_type_from_media?.[0],
-              related_media_locations: fields.related_media_locations_from_media,
-            },
-          };
-        });
+  const mediaMap = new Map<string, Media>();
+  for (const record of records) {
+    const fields = convertKeysToSnakeCase(record.fields);
+    mediaMap.set(record.id, {
+      name: fields.name,
+      original_title: fields.original_title,
+      director: fields.director,
+      release_year: fields.release_year,
+      description: fields.description,
+      image: fields.image?.[0],
+      video_link: fields.video_link,
+      subjects: fields.subjects,
+      language: fields.language,
+      references: fields.references,
+      rights: fields.rights,
+      rights_statement_link: fields.rights_statement_link,
+      media_type: fields.media_type,
+      related_media_locations: fields.related_media_locations,
     });
+  }
 
-  return response;
+  return mediaMap;
+}
+
+export async function getMediaPoints() {
+  const [locationRecords, mediaMap] = await Promise.all([
+    base(MEDIA_LOCATION_TABLE_NAME)
+      .select({
+        view: process.env.AIRTABLE_VIEW_NAME,
+      })
+      .all(),
+    getMedia(),
+  ]);
+
+  return locationRecords
+    .filter((record) => record.fields.Latitude && record.fields.Longitude)
+    .map((record) => {
+      const fields = convertKeysToSnakeCase(record.fields);
+      const mediaId = fields.media?.[0];
+
+      return {
+        id: record.id,
+        name: fields.name,
+        latitude: fields.latitude,
+        longitude: fields.longitude,
+        location_name: fields.location_name,
+        location_description: fields.location_description,
+        natural_feature_name: fields.natural_feature_name,
+        city: fields.city,
+        region: fields.region,
+        country: fields.country,
+        media: mediaId ? mediaMap.get(mediaId) : undefined,
+      };
+    });
 }
 
 export async function getWebAppMetadata() {

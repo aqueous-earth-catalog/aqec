@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Markdown } from "@/components/markdown";
 
 function Container({
   className,
@@ -20,7 +21,7 @@ function Label({
   children: React.ReactNode;
 }) {
   return (
-    <span className={cn("text-xs text-muted-foreground", className)}>
+    <span className={cn("text-xs font-semibold tracking-relaxed", className)}>
       {children}
     </span>
   );
@@ -105,7 +106,7 @@ export function Metric({
   return (
     <Container className={className}>
       <Label>{label}</Label>
-      <p className="text-sm">{value}</p>
+      <Markdown>{value}</Markdown>
     </Container>
   );
 }
