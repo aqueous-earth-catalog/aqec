@@ -60,3 +60,15 @@ export interface MultiSelectOption {
   value: string;
   label: string;
 }
+
+export interface WebAppMetadata {
+  title: string;
+  description: string;
+  keywords: string;
+  creator: string;
+  owner: string;
+  getting_started_dialog_title?: string;
+  getting_started_dialog_content?: string;
+  getting_started_dialog_enabled?: boolean;
+  getting_started_dialog_version?: string;
+}

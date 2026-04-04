@@ -1,5 +1,6 @@
+import { cache } from "react";
 import { base, convertKeysToSnakeCase } from "@/lib/airtable";
-import { Media } from "@/lib/airtable/types";
+import { Media, WebAppMetadata } from "@/lib/airtable/types";
 
 const MEDIA_LOCATION_TABLE_NAME = "Media Locations";
 const MEDIA_TABLE_NAME = "Media";
@@ -67,7 +68,7 @@ export async function getMediaPoints() {
     });
 }
 
-export async function getWebAppMetadata() {
+export const getWebAppMetadata = cache(async (): Promise<WebAppMetadata> => {
   const response = await base(WEB_APP_METADATA_TABLE_NAME)
     .select({
       view: process.env.AIRTABLE_VIEW_NAME,
@@ -82,11 +83,17 @@ export async function getWebAppMetadata() {
           keywords: fields.site_keywords,
           creator: fields.creator,
           owner: fields.owner,
+          getting_started_dialog_title: fields.getting_started_dialog_title,
+          getting_started_dialog_content: fields.getting_started_dialog_content,
+          getting_started_dialog_enabled:
+            fields.getting_started_dialog_enabled ?? false,
+          getting_started_dialog_version:
+            fields.getting_started_dialog_version ?? "v1",
         };
       });
     });
 
-  const metadata = response[0] || {};
+  const metadata = response[0] ?? ({} as WebAppMetadata);
 
   return metadata;
-}
+});
