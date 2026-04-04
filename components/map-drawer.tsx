@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import { MediaLocation } from "@/lib/airtable/types";
 import { FILTER_PARAMS, removeQueryParameter } from "@/lib/utils";
-import { matchesSearch } from "@/lib/search";
 import { Button } from "./ui/button";
 import Search from "./search";
 import { ResultCard } from "./result-card";
@@ -20,19 +19,22 @@ import { LocationDetails } from "./location-details";
 import { useIsTablet } from "./hooks/use-tablet";
 
 interface MapDrawerProps {
-  filteredMediaPoints: MediaLocation[];
+  searchedMediaPoints: MediaLocation[];
   allMediaPoints: MediaLocation[];
+  searchValue: string;
+  onSearchChange: (value: string) => void;
   isOpen: boolean;
   onToggle: () => void;
 }
 
 export function MapDrawer({
-  filteredMediaPoints,
+  searchedMediaPoints,
   allMediaPoints,
+  searchValue,
+  onSearchChange,
   isOpen,
   onToggle,
 }: MapDrawerProps) {
-  const [searchValue, setSearchValue] = useState("");
   const searchParams = useSearchParams();
   const mediaPointId = searchParams.get("mediaPointId");
   const isMobile = useIsTablet();
@@ -50,13 +52,6 @@ export function MapDrawer({
   const selectedMediaPoint = mediaPointId
     ? allMediaPoints.find((point) => point.id === mediaPointId)
     : null;
-
-  // Filter results by search text
-  const searchedResults = useMemo(() => {
-    return filteredMediaPoints.filter((media) =>
-      matchesSearch(media, searchValue)
-    );
-  }, [searchValue, filteredMediaPoints]);
 
   function handleBack() {
     window.history.pushState({}, "", removeQueryParameter("mediaPointId"));
@@ -129,7 +124,7 @@ export function MapDrawer({
           className="gap-1 -ml-2"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to Search
+          Back to Results
         </Button>
         <Button
           variant="ghost"
@@ -157,7 +152,7 @@ export function MapDrawer({
     <div className="flex flex-col overflow-hidden flex-1">
       <div className="flex items-center gap-2 p-3 shrink-0">
         <div className="flex-1">
-          <Search value={searchValue} onValueChange={setSearchValue} />
+          <Search value={searchValue} onValueChange={onSearchChange} />
         </div>
         <Button
           variant="ghost"
@@ -175,8 +170,8 @@ export function MapDrawer({
       </div>
       <div className="flex items-center justify-between px-3 py-2 shrink-0">
         <span className="text-xs text-muted-foreground">
-          {searchedResults.length} result
-          {searchedResults.length !== 1 ? "s" : ""}
+          {searchedMediaPoints.length} result
+          {searchedMediaPoints.length !== 1 ? "s" : ""}
         </span>
         {hasActiveFilters && (
           <Button
@@ -191,14 +186,14 @@ export function MapDrawer({
         )}
       </div>
       <div className="overflow-y-auto flex-1 styled-scrollbar">
-        {searchedResults.map((media) => (
+        {searchedMediaPoints.map((media) => (
           <ResultCard
             key={media.id}
             media={media}
             isSelected={media.id === mediaPointId}
           />
         ))}
-        {searchedResults.length === 0 && (
+        {searchedMediaPoints.length === 0 && (
           <div className="p-4 text-sm text-muted-foreground text-center">
             No results found.
           </div>

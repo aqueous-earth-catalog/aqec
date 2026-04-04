@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { MapFilters, MultiSelectOption } from "@/lib/airtable/types";
+import { useMemo, useState } from "react";
+import { MapFilters, MediaLocation } from "@/lib/airtable/types";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -20,10 +20,7 @@ import MultiSelect from "./ui/multi-select";
 
 interface FilterProps {
   filters: MapFilters;
-  countryOptions: MultiSelectOption[];
-  bodiesOfWaterOptions: MultiSelectOption[];
-  minYear: number;
-  maxYear: number;
+  mediaPoints: MediaLocation[];
 }
 
 function filtersResetKey(f: MapFilters): string {
@@ -35,13 +32,41 @@ function filtersResetKey(f: MapFilters): string {
   ].join("|");
 }
 
-function FiltersForm({
-  filters,
-  minYear,
-  maxYear,
-  countryOptions,
-  bodiesOfWaterOptions,
-}: FilterProps) {
+function FiltersForm({ filters, mediaPoints }: FilterProps) {
+  const countryOptions = useMemo(
+    () =>
+      [...new Set(mediaPoints.map((m) => m.country))]
+        .filter((c) => c !== undefined)
+        .sort()
+        .map((c) => ({ value: c?.toLowerCase(), label: c })),
+    [mediaPoints]
+  );
+  const bodiesOfWaterOptions = useMemo(
+    () =>
+      [...new Set(mediaPoints.map((m) => m.natural_feature_name))]
+        .filter((b) => b !== undefined)
+        .sort()
+        .map((b) => ({ value: b?.toLowerCase(), label: b })),
+    [mediaPoints]
+  );
+  const minYear = useMemo(
+    () =>
+      Math.min(
+        ...mediaPoints
+          .map((d) => d.media?.release_year)
+          .filter((y) => y !== undefined)
+      ),
+    [mediaPoints]
+  );
+  const maxYear = useMemo(
+    () =>
+      Math.max(
+        ...mediaPoints
+          .map((d) => d.media?.release_year)
+          .filter((y) => y !== undefined)
+      ),
+    [mediaPoints]
+  );
   const [selectedCountry, setSelectedCountry] = useState<string[]>(
     filters.countries
   );
@@ -76,9 +101,9 @@ function FiltersForm({
     <Dialog open={filtersOpen} onOpenChange={setFiltersOpen}>
       <DialogTrigger asChild>
         <Button
-          variant="outline"
+          variant="ghost"
           size="lg"
-          className="rounded-full px-6 shadow-md bg-background text-base"
+          className="rounded-l-full px-6 text-base border-0 shadow-none"
           aria-label="Open filters"
         >
           <SlidersHorizontal className="h-5 w-5" />
@@ -149,6 +174,8 @@ function FiltersForm({
   );
 }
 
+// Wrapper that remounts FiltersForm whenever the applied filters change,
+// resetting local form state to match the current URL parameters.
 export function Filters(props: FilterProps) {
   return <FiltersForm key={filtersResetKey(props.filters)} {...props} />;
 }
