@@ -7,5 +7,11 @@
  * @see https://support.airtable.com/docs/using-markdown-in-airtable (footnote 4)
  */
 export function unescapeAirtableRichTextMarkdown(text: string): string {
-  return text.replace(/\\([*#[\]`_~>])/g, "$1");
+  let prev = "";
+  let result = text;
+  while (result !== prev) {
+    prev = result;
+    result = result.replace(/\\([*#[\]`_~>])/g, "$1");
+  }
+  return result;
 }
