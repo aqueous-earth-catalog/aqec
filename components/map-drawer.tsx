@@ -11,7 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { MediaLocation } from "@/lib/airtable/types";
-import { FILTER_PARAMS, removeQueryParameter } from "@/lib/utils";
+import { filterSearchParamKeys, removeQueryParameter } from "@/lib/utils";
 import { Button } from "./ui/button";
 import Search from "./search";
 import { ResultCard } from "./result-card";
@@ -40,11 +40,12 @@ export function MapDrawer({
   const isMobile = useIsTablet();
   const drawerRef = useRef<HTMLDivElement>(null);
 
-  const hasActiveFilters = FILTER_PARAMS.some((p) => searchParams.has(p));
+  const filterKeys = filterSearchParamKeys();
+  const hasActiveFilters = filterKeys.some((p) => searchParams.has(p));
 
   function handleClearFilters() {
     const params = new URLSearchParams(searchParams.toString());
-    FILTER_PARAMS.forEach((p) => params.delete(p));
+    filterKeys.forEach((p) => params.delete(p));
     const qs = params.toString();
     window.history.pushState({}, "", qs ? `?${qs}` : "/");
   }

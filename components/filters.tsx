@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { MapFilters, MediaLocation } from "@/lib/airtable/types";
+import { ENABLE_REGION_FILTER } from "@/lib/feature-flags";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -26,6 +27,7 @@ interface FilterProps {
 function filtersResetKey(f: MapFilters): string {
   return [
     [...f.countries].sort().join(","),
+    [...f.regions].sort().join(","),
     [...f.bodiesOfWater].sort().join(","),
     f.startYear,
     f.endYear,
@@ -39,6 +41,14 @@ function FiltersForm({ filters, mediaPoints }: FilterProps) {
         .filter((c) => c !== undefined)
         .sort()
         .map((c) => ({ value: c?.toLowerCase(), label: c })),
+    [mediaPoints]
+  );
+  const regionOptions = useMemo(
+    () =>
+      [...new Set(mediaPoints.map((m) => m.region))]
+        .filter((r) => r !== undefined && r.trim() !== "")
+        .sort()
+        .map((r) => ({ value: r?.toLowerCase(), label: r })),
     [mediaPoints]
   );
   const bodiesOfWaterOptions = useMemo(
@@ -70,6 +80,9 @@ function FiltersForm({ filters, mediaPoints }: FilterProps) {
   const [selectedCountry, setSelectedCountry] = useState<string[]>(
     filters.countries
   );
+  const [selectedRegion, setSelectedRegion] = useState<string[]>(
+    filters.regions
+  );
   const [selectedWater, setSelectedWater] = useState<string[]>(
     filters.bodiesOfWater
   );
@@ -85,6 +98,9 @@ function FiltersForm({ filters, mediaPoints }: FilterProps) {
     }
     if (selectedCountry.length) {
       newParams.append("country", selectedCountry.join(","));
+    }
+    if (ENABLE_REGION_FILTER && selectedRegion.length) {
+      newParams.append("region", selectedRegion.join(","));
     }
     if (startYear) {
       newParams.append("start_year", "" + startYear);
@@ -125,9 +141,18 @@ function FiltersForm({ filters, mediaPoints }: FilterProps) {
             selectedOptions={selectedCountry}
           />
 
+          {ENABLE_REGION_FILTER && (
+            <MultiSelect
+              values={regionOptions}
+              label="Region"
+              onSelect={setSelectedRegion}
+              selectedOptions={selectedRegion}
+            />
+          )}
+
           <MultiSelect
             values={bodiesOfWaterOptions}
-            label="Bodies of Water"
+            label="More Features"
             onSelect={setSelectedWater}
             selectedOptions={selectedWater}
           />

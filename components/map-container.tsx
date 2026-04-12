@@ -1,6 +1,7 @@
 "use client";
 
 import { MapFilters, MediaLocation } from "@/lib/airtable/types";
+import { ENABLE_REGION_FILTER } from "@/lib/feature-flags";
 import { cn, computeMapBounds } from "@/lib/utils";
 import { matchesSearch } from "@/lib/search";
 import { useSearchParams } from "next/navigation";
@@ -63,6 +64,9 @@ export default function MapContainer({ mediaPoints }: MapContainerProps) {
   const filters: MapFilters = useMemo(
     () => ({
       countries: searchParams.get("country")?.split(",").filter(Boolean) || [],
+      regions: ENABLE_REGION_FILTER
+        ? searchParams.get("region")?.split(",").filter(Boolean) || []
+        : [],
       bodiesOfWater:
         searchParams.get("body_of_water")?.split(",").filter(Boolean) || [],
       startYear: searchParams.get("start_year") || "",
@@ -76,6 +80,12 @@ export default function MapContainer({ mediaPoints }: MapContainerProps) {
       if (
         filters.countries.length > 0 &&
         !filters.countries.includes(media?.country?.toLowerCase() || "")
+      )
+        return false;
+      if (
+        ENABLE_REGION_FILTER &&
+        filters.regions.length > 0 &&
+        !filters.regions.includes(media?.region?.toLowerCase() || "")
       )
         return false;
       if (

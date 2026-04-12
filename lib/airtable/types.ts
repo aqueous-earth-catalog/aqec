@@ -49,8 +49,9 @@ export interface MediaLocation {
   media?: Media;
 }
 
-export interface MapFilters { 
+export interface MapFilters {
   countries: string[];
+  regions: string[];
   bodiesOfWater: string[];
   startYear: string;
   endYear: string;

@@ -7,6 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 
 import { Row } from "@tanstack/react-table";
 import { MapFilters, MediaLocation } from "@/lib/airtable/types";
+import { ENABLE_REGION_FILTER } from "@/lib/feature-flags";
 import { formatLocation } from "@/components/media-locations-table/columns";
 import { LngLatBoundsLike } from "mapbox-gl";
 
@@ -93,9 +94,17 @@ export const FILTER_PARAMS = [
   "end_year",
 ] as const;
 
+/** Keys cleared by “Clear filters” (includes `region` when the feature is on). */
+export function filterSearchParamKeys(): string[] {
+  return ENABLE_REGION_FILTER
+    ? [...FILTER_PARAMS, "region"]
+    : [...FILTER_PARAMS];
+}
+
 export function hasActiveFilters(filters: MapFilters): boolean {
   return (
     filters.countries.length > 0 ||
+    (ENABLE_REGION_FILTER && filters.regions.length > 0) ||
     filters.bodiesOfWater.length > 0 ||
     filters.startYear !== "" ||
     filters.endYear !== ""
