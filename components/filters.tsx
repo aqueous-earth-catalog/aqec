@@ -152,7 +152,7 @@ function FiltersForm({ filters, mediaPoints }: FilterProps) {
 
           <MultiSelect
             values={bodiesOfWaterOptions}
-            label="More Features"
+            label="Bodies of Water"
             onSelect={setSelectedWater}
             selectedOptions={selectedWater}
           />
