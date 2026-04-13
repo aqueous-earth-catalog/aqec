@@ -46,9 +46,9 @@ function FiltersForm({ filters, mediaPoints }: FilterProps) {
   const regionOptions = useMemo(
     () =>
       [...new Set(mediaPoints.map((m) => m.region))]
-        .filter((r) => r !== undefined && r.trim() !== "")
+        .filter((r): r is string => typeof r === "string" && r.trim() !== "")
         .sort()
-        .map((r) => ({ value: r?.toLowerCase(), label: r })),
+        .map((r) => ({ value: r.toLowerCase(), label: r })),
     [mediaPoints]
   );
   const bodiesOfWaterOptions = useMemo(
