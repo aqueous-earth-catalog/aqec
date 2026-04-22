@@ -23,7 +23,7 @@ function buildLocationString(
   region?: string,
   country?: string
 ): string {
-  const locationParts = [city, region, country].filter(
+  const locationParts = [city, region, country].filter( 
     (part) => part && part.trim() !== ""
   );
   return locationParts.join(", ");
@@ -77,7 +77,7 @@ export function LocationDetails({
           </div>
 
           {selectedMediaPoint?.media?.image?.url && (
-            <div className="relative w-full h-50">
+            <div className="relative w-full h-[24vh] min-h-[160px] max-h-[320px] overflow-hidden rounded bg-muted">
               <Image
                 src={selectedMediaPoint.media.image.url || ""}
                 alt={`Image from ${
@@ -86,7 +86,8 @@ export function LocationDetails({
                   selectedMediaPoint.media.release_year || "unknown year"
                 }) by ${selectedMediaPoint.media.director || "unknown director"}`}
                 fill
-                className="object-cover rounded"
+                sizes="(min-width: 1024px) 384px, 100vw"
+                className="object-contain object-center"
               />
             </div>
           )}
@@ -119,7 +120,7 @@ export function LocationDetails({
           />
 
           <Metric
-            label="Natural Feature"
+            label="Relevant Feature Label"
             value={selectedMediaPoint?.natural_feature_name}
             className="mt-3"
           />
