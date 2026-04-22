@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
@@ -25,6 +25,9 @@ interface MapDrawerProps {
   onSearchChange: (value: string) => void;
   isOpen: boolean;
   onToggle: () => void;
+  drawerWidthPx: number;
+  onDrawerWidthChange: (width: number) => void;
+  onDrawerWidthCommit: (width: number) => void;
 }
 
 export function MapDrawer({
@@ -34,11 +37,35 @@ export function MapDrawer({
   onSearchChange,
   isOpen,
   onToggle,
+  drawerWidthPx,
+  onDrawerWidthChange,
+  onDrawerWidthCommit,
 }: MapDrawerProps) {
   const searchParams = useSearchParams();
   const mediaPointId = searchParams.get("mediaPointId");
   const isMobile = useIsTablet();
   const drawerRef = useRef<HTMLDivElement>(null);
+
+  const startResize = useCallback(
+    (event: React.MouseEvent) => {
+      event.preventDefault();
+      const startX = event.clientX;
+      const startW = drawerWidthPx;
+      function onMove(moveEvent: MouseEvent) {
+        const delta = moveEvent.clientX - startX;
+        onDrawerWidthChange(startW + delta);
+      }
+      function onUp(moveEvent: MouseEvent) {
+        window.removeEventListener("mousemove", onMove);
+        window.removeEventListener("mouseup", onUp);
+        const delta = moveEvent.clientX - startX;
+        onDrawerWidthCommit(startW + delta);
+      }
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onUp);
+    },
+    [drawerWidthPx, onDrawerWidthChange, onDrawerWidthCommit]
+  );
 
   const filterKeys = filterSearchParamKeys();
   const hasActiveFilters = filterKeys.some((p) => searchParams.has(p));
@@ -116,7 +143,7 @@ export function MapDrawer({
   // Drawer content (shared between mobile and desktop)
   const drawerContent = selectedMediaPoint ? (
     /* Detail view */
-    <div className="flex flex-col overflow-hidden flex-1">
+    <div className="flex flex-col overflow-hidden flex-1 min-w-0">
       <div className="flex items-center justify-between px-3 pt-2 shrink-0">
         <Button
           variant="ghost"
@@ -150,7 +177,7 @@ export function MapDrawer({
     </div>
   ) : (
     /* Search + Results list */
-    <div className="flex flex-col overflow-hidden flex-1">
+    <div className="flex flex-col overflow-hidden flex-1 min-w-0">
       <div className="flex items-center gap-2 p-3 shrink-0">
         <div className="flex-1">
           <Search value={searchValue} onValueChange={onSearchChange} />
@@ -218,16 +245,26 @@ export function MapDrawer({
     );
   }
 
-  // Desktop: left panel
+  // Desktop: left panel (width user-resizable up to half the viewport)
   return (
     <div
       ref={drawerRef}
       tabIndex={-1}
       role="region"
       aria-label={selectedMediaPoint ? "Location details" : "Search results"}
-      className="absolute top-0 left-0 bottom-0 z-10 w-80 lg:w-96 bg-background flex flex-col shadow-lg focus:outline-none"
+      className="relative h-full z-10 bg-background flex flex-col shadow-lg focus:outline-none min-w-0 overflow-hidden"
+      style={{ width: drawerWidthPx }}
     >
       {drawerContent}
+      <div
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize side panel"
+        className="absolute top-0 right-0 bottom-0 w-3 -mr-1.5 cursor-ew-resize z-20 flex shrink-0 justify-center touch-none select-none"
+        onMouseDown={startResize}
+      >
+        <span className="w-px h-full bg-border hover:bg-primary/50 active:bg-primary transition-colors" />
+      </div>
     </div>
   );
 }
