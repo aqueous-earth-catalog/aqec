@@ -54,6 +54,19 @@ export default function Navbar({ title }: { title: string }) {
             </li>
             <li>
               <Link
+                href="/collections"
+                className={cn(
+                  BASE_CLASSNAMES,
+                  pathname === "/collections"
+                    ? ACTIVE_CLASSNAMES
+                    : INACTIVE_CLASSNAMES
+                )}
+              >
+                Collections
+              </Link>
+            </li>
+            <li>
+              <Link
                 href="/about"
                 className={cn(
                   BASE_CLASSNAMES,
