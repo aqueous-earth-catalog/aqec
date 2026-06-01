@@ -1,10 +1,11 @@
 import { cache } from "react";
 import { base, convertKeysToSnakeCase } from "@/lib/airtable";
-import { Media, WebAppMetadata } from "@/lib/airtable/types";
+import { Collection, Media, WebAppMetadata } from "@/lib/airtable/types";
 
 const MEDIA_LOCATION_TABLE_NAME = "Media Locations";
 const MEDIA_TABLE_NAME = "Media";
 const WEB_APP_METADATA_TABLE_NAME = "Web App Metadata";
+const COLLECTIONS_TABLE_NAME = "Collections";
 
 // Fetches Media records directly rather than relying on lookup fields on the
 // Media Locations table. Airtable lookup fields strip rich text (Markdown)
@@ -63,6 +64,7 @@ export async function getMediaPoints() {
         city: fields.city,
         region: fields.region,
         country: fields.country,
+        media_id: mediaId,
         media: mediaId ? mediaMap.get(mediaId) : undefined,
       };
     });
@@ -97,3 +99,33 @@ export const getWebAppMetadata = cache(async (): Promise<WebAppMetadata> => {
 
   return metadata;
 });
+
+export async function getCollections(): Promise<Collection[]> {
+  const records = await base(COLLECTIONS_TABLE_NAME).select().all();
+
+  return records
+    .map((record) => {
+      const fields = convertKeysToSnakeCase(record.fields);
+
+      return {
+        id: record.id,
+        title: fields.title ?? "",
+        body_repo_slug: fields.body_repo_slug ?? "",
+        published: fields.published ?? false,
+        featured: fields.featured ?? false,
+        created_time: fields.created_time,
+        teaser: fields.teaser,
+        linked_media: fields.linked_media,
+        linked_media_locations: fields.linked_media_locations,
+      };
+    })
+    .filter((collection) => collection.published)
+    .sort((a, b) => {
+      if (Boolean(a.featured) !== Boolean(b.featured)) {
+        return a.featured ? -1 : 1;
+      }
+      const aTime = a.created_time ? Date.parse(a.created_time) : 0;
+      const bTime = b.created_time ? Date.parse(b.created_time) : 0;
+      return aTime - bTime;
+    });
+}
