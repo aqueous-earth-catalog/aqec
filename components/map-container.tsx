@@ -5,7 +5,7 @@ import { ENABLE_REGION_FILTER } from "@/lib/feature-flags";
 import { cn, computeMapBounds } from "@/lib/utils";
 import { matchesSearch } from "@/lib/search";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Map } from "@/components/map";
 import { STYLES, MapStyle, takeScreenshot } from "@/lib/map-utils";
 import { MapDrawer } from "./map-drawer";
@@ -26,9 +26,7 @@ const DEFAULT_DRAWER_WIDTH_WIDE_PX = 384;
 
 function defaultDrawerWidthForViewport(): number {
   if (typeof window === "undefined") return DEFAULT_DRAWER_WIDTH_WIDE_PX;
-  return window.innerWidth >= LG_BREAKPOINT_PX
-    ? DEFAULT_DRAWER_WIDTH_WIDE_PX
-    : DEFAULT_DRAWER_WIDTH_NARROW_PX;
+  return Math.floor(window.innerWidth * 0.4);
 }
 
 function maxDrawerWidthPx(): number {
@@ -55,9 +53,12 @@ export default function MapContainer({ mediaPoints }: MapContainerProps) {
   const [drawerOpen, setDrawerOpen] = useState(true);
   const [mapStyle, setMapStyle] = useState<MapStyle>("standard");
   const [searchValue, setSearchValue] = useState("");
-  const [drawerWidthPx, setDrawerWidthPx] = useState(() =>
-    clampDrawerWidthPx(defaultDrawerWidthForViewport())
-  );
+   // 0 = no measured width yet; drawer renders CSS 40vw until the layout effect runs.
+  const [drawerWidthPx, setDrawerWidthPx] = useState(0);
+
+  useLayoutEffect(() => {
+    setDrawerWidthPx(clampDrawerWidthPx(defaultDrawerWidthForViewport()));
+  }, []);
   const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
   const isTablet = useIsTablet();
 
