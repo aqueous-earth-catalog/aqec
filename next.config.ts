@@ -6,9 +6,11 @@ const nextConfig = {
   pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
   // Optionally, add any other Next.js config below
   experimental: {
-    // HAD TO ADD THIS TO GET MDX AND TURBO TO WORK TOGETHER
-    // See https://nextjs.org/docs/app/guides/mdx#using-the-rust-based-mdx-compiler-experimental
-    mdxRs: true,
+  // HAD TO ADD THIS TO GET MDX AND TURBO TO WORK TOGETHER
+  // See https://nextjs.org/docs/app/guides/mdx#using-the-rust-based-mdx-compiler-experimental
+    mdxRs: {
+      mdxType: "gfm",
+    },
   },
   images: {
     remotePatterns: [
