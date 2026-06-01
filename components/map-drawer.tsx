@@ -253,7 +253,7 @@ export function MapDrawer({
       role="region"
       aria-label={selectedMediaPoint ? "Location details" : "Search results"}
       className="relative h-full z-10 bg-background flex flex-col shadow-lg focus:outline-none min-w-0 overflow-hidden"
-      style={{ width: drawerWidthPx }}
+      style={{ width: drawerWidthPx > 0 ? drawerWidthPx : "40vw" }}
     >
       {drawerContent}
       <div
