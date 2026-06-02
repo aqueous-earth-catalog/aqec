@@ -123,8 +123,8 @@ export function CollectionsDrawer({
 
   const drawerContent = selectedCollection ? (
     <div className="flex flex-col overflow-hidden flex-1 min-w-0">
-      <div className="flex items-center justify-between px-3 pt-2 shrink-0">
-        <Button variant="ghost" size="sm" onClick={handleBackToList} className="gap-1 -ml-2">
+    <div className="flex items-center justify-between pl-6 pr-4 pt-2 shrink-0">
+      <Button variant="ghost" size="sm" onClick={handleBackToList} className="gap-1">
           <ArrowLeft className="h-4 w-4" />
           Back to list
         </Button>
@@ -138,7 +138,7 @@ export function CollectionsDrawer({
           {isMobile ? <ChevronDown className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
         </Button>
       </div>
-      <div className="overflow-y-auto flex-1 styled-scrollbar px-3 pb-4 space-y-6">
+      <div className="overflow-y-auto flex-1 styled-scrollbar pl-6 pr-4 pb-4 space-y-6">
       <div className="prose prose-sm max-w-none dark:prose-invert prose-p:leading-relaxed">
           <h2>{selectedCollection.title}</h2>
         </div>
