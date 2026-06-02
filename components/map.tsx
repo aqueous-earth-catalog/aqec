@@ -54,7 +54,7 @@ export function Map({
       style: styleUrl,
       bounds: bounds || DEFAULT_BOUNDS,
       fitBoundsOptions: {
-        padding: 100,
+        padding: 40,
       },
       zoom: DEFAULT_ZOOM,
       preserveDrawingBuffer: true,
