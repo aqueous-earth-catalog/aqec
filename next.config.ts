@@ -9,7 +9,7 @@ const nextConfig = {
   // HAD TO ADD THIS TO GET MDX AND TURBO TO WORK TOGETHER
   // See https://nextjs.org/docs/app/guides/mdx#using-the-rust-based-mdx-compiler-experimental
     mdxRs: {
-      mdxType: "gfm",
+      mdxType: "gfm" as const,
     },
   },
   images: {
