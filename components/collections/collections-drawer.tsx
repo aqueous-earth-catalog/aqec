@@ -139,7 +139,9 @@ export function CollectionsDrawer({
         </Button>
       </div>
       <div className="overflow-y-auto flex-1 styled-scrollbar px-3 pb-4 space-y-6">
-        <h2 className="text-lg font-semibold">{selectedCollection.title}</h2>
+      <div className="prose prose-sm max-w-none dark:prose-invert prose-p:leading-relaxed">
+          <h2>{selectedCollection.title}</h2>
+        </div>
         {body ?? (
           <p className="text-sm text-muted-foreground">
             No article text found. Add{" "}
