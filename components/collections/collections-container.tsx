@@ -60,12 +60,14 @@ export default function CollectionsContainer({
 }: CollectionsContainerProps) {
   const searchParams = useSearchParams();
   const collectionId = searchParams.get("collectionId");
+  const mediaPointId = searchParams.get("mediaPointId");
   const [prevCollectionId, setPrevCollectionId] = useState(collectionId);
   const [drawerOpen, setDrawerOpen] = useState(true);
   const [mapStyle, setMapStyle] = useState<MapStyle>("standard");
   // 0 = no measured width yet; drawer renders CSS 40vw until the layout effect runs.
   const [drawerWidthPx, setDrawerWidthPx] = useState(0);
   const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
+  const [isMapReady, setIsMapReady] = useState(false);
   const isTablet = useIsTablet();
 
   useLayoutEffect(() => {
@@ -104,6 +106,20 @@ export default function CollectionsContainer({
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
+    useEffect(() => {
+    const mapInstance = mapInstanceRef.current;
+    if (!isMapReady || !mapInstance || !collectionId || collectionLocations.length === 0) {
+      return;
+    }
+    if (mediaPointId) return;
+
+    const first = collectionLocations[0];
+    mapInstance.flyTo({
+      center: [first.longitude, first.latitude],
+      duration: 800,
+    });
+  }, [isMapReady, collectionId, collectionLocations, mediaPointId]);
+  
   if (collectionId !== prevCollectionId) {
     setPrevCollectionId(collectionId);
     if (collectionId) setDrawerOpen(true);
@@ -111,6 +127,7 @@ export default function CollectionsContainer({
 
   const handleMapReady = useCallback((map: mapboxgl.Map) => {
     mapInstanceRef.current = map;
+    setIsMapReady(true);
   }, []);
 
   const handleDrawerToggle = useCallback(() => {
