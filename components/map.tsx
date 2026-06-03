@@ -14,7 +14,7 @@ import {
 } from "@/lib/map-utils";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
-const MAP_FIT_PADDING = 16;
+const MAP_FIT_PADDING = 8;
 
 interface MapProps {
   data: MediaLocation[];
