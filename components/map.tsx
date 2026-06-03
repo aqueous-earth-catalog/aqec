@@ -14,6 +14,7 @@ import {
 } from "@/lib/map-utils";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
+const MAP_FIT_PADDING = 24;
 
 interface MapProps {
   data: MediaLocation[];
@@ -54,7 +55,7 @@ export function Map({
       style: styleUrl,
       bounds: bounds || DEFAULT_BOUNDS,
       fitBoundsOptions: {
-        padding: 40,
+        padding: MAP_FIT_PADDING,
       },
       zoom: DEFAULT_ZOOM,
       preserveDrawingBuffer: true,
@@ -98,6 +99,11 @@ export function Map({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [styleUrl, isMapLoaded]);
 
+  useEffect(() => {
+    if (!map.current || !isMapLoaded || !bounds) return;
+    map.current.fitBounds(bounds, { padding: MAP_FIT_PADDING, duration: 0 });
+  }, [isMapLoaded, bounds]);
+  
   // Sync the GeoJSON data layer with selection included in a single
   // setData() call to avoid intermediate frames with missing styling.
   useEffect(() => {
