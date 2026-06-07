@@ -14,6 +14,8 @@ import { addQueryParameter, removeQueryParameter } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ResultCard } from "@/components/result-card";
 import { useIsTablet } from "@/components/hooks/use-tablet";
+import { CollectionArticleScroll } from "@/components/collections/collection-article-scroll";
+import { useCollectionMap } from "@/components/collections/collection-map-context";
 
 interface CollectionsDrawerProps {
   collections: Collection[];
@@ -41,6 +43,9 @@ export function CollectionsDrawer({
   const mediaPointId = searchParams.get("mediaPointId");
   const isMobile = useIsTablet();
   const drawerRef = useRef<HTMLDivElement>(null);
+
+  const articleScrollRef = useRef<HTMLDivElement>(null);
+  const { clearFocus } = useCollectionMap();
 
   const selectedCollection = collectionId
     ? collections.find((c) => c.id === collectionId)
@@ -93,7 +98,12 @@ export function CollectionsDrawer({
     if (isOpen && drawerRef.current) drawerRef.current.focus();
   }, [isOpen, selectedCollection]);
 
+  useEffect(() => {
+    if (mediaPointId) clearFocus();
+  }, [mediaPointId, clearFocus]);
+
   if (!isOpen) {
+    
     if (isMobile) {
       return (
         <Button
@@ -138,11 +148,21 @@ export function CollectionsDrawer({
           {isMobile ? <ChevronDown className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
         </Button>
       </div>
-      <div className="overflow-y-auto flex-1 styled-scrollbar pl-6 pr-4 pb-4 space-y-6">
+      <div
+        ref={articleScrollRef}
+        className="overflow-y-auto flex-1 styled-scrollbar pl-6 pr-4 pb-4 space-y-6"
+      >
       <div className="prose prose-sm max-w-none dark:prose-invert prose-p:leading-relaxed">
           <h2>{selectedCollection.title}</h2>
         </div>
-        {body ?? (
+        {body ? (
+          <CollectionArticleScroll
+            scrollRef={articleScrollRef}
+            locations={locationsForSelectedCollection}
+          >
+            {body}
+          </CollectionArticleScroll>
+        ) : (
           <p className="text-sm text-muted-foreground">
             No article text found. Add{" "}
             <code className="text-xs">content/collections/&lt;slug&gt;/index.mdx</code>{" "}
