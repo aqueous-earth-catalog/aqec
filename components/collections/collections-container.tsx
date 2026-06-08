@@ -12,7 +12,7 @@ import {
 import { useSearchParams } from "next/navigation";
 import type { Collection, MapFilters, MediaLocation } from "@/lib/airtable/types";
 import { resolveLocationsForCollection } from "@/lib/collections/resolve-collection-locations";
-import { computeMapBounds } from "@/lib/utils";
+import { computeMapBounds, removeQueryParameter } from "@/lib/utils";
 import { Map } from "@/components/map";
 import { STYLES, MapStyle } from "@/lib/map-utils";
 import { CollectionsDrawer } from "@/components/collections/collections-drawer";
@@ -99,14 +99,21 @@ function CollectionsContainerBody({
   const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
   const isTablet = useIsTablet();
-  const { registerMap, clearFocus } = useCollectionMap();
+  const { registerMap, focusOnMedia, clearFocus } = useCollectionMap();
 
   useLayoutEffect(() => {
     setDrawerWidthPx(clampDrawerWidthPx(defaultCollectionsDrawerWidthPx()));
   }, []);
 
-  // Same bounds as the full catalog so the globe zoom matches the map view.
-  const mapBounds = useMemo(() => computeMapBounds(allMediaPoints), [allMediaPoints]);
+  const collectionMapBounds = useMemo(
+    () => computeMapBounds(collectionLocations),
+    [collectionLocations]
+  );
+  const catalogMapBounds = useMemo(
+    () => computeMapBounds(allMediaPoints),
+    [allMediaPoints]
+  );
+  const mapBounds = collectionId ? collectionMapBounds : catalogMapBounds;
 
   useEffect(() => {
     if (isTablet) return;
@@ -128,23 +135,21 @@ function CollectionsContainerBody({
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-    useEffect(() => {
-    const mapInstance = mapInstanceRef.current;
-    if (!isMapReady || !mapInstance || !collectionId || collectionLocations.length === 0) {
-      return;
-    }
-    if (mediaPointId) return;
+    const handlePinClick = useCallback(
+    (point: MediaLocation) => {
+      focusOnMedia(point);
+      if (mediaPointId) {
+        window.history.pushState({}, "", removeQueryParameter("mediaPointId"));
+      }
+    },
+    [focusOnMedia, mediaPointId]
+  );
 
-    const first = collectionLocations[0];
-    mapInstance.flyTo({
-      center: [first.longitude, first.latitude],
-      duration: 800,
-    });
-  }, [isMapReady, collectionId, collectionLocations, mediaPointId]);
-
-    useEffect(() => {
-    if (mediaPointId) clearFocus();
-  }, [mediaPointId, clearFocus]);
+  useEffect(() => {
+    if (!mediaPointId) return;
+    const point = collectionLocations.find((p) => p.id === mediaPointId);
+    if (point) focusOnMedia(point);
+  }, [mediaPointId, collectionLocations, focusOnMedia]);
   
   if (collectionId !== prevCollectionId) {
     setPrevCollectionId(collectionId);
@@ -191,13 +196,17 @@ function CollectionsContainerBody({
     <div className="w-full relative h-[calc(100vh-4rem)]">
       {isTablet ? (
         <div className="relative w-full h-full overflow-hidden">
-          <Map
+        <Map
             data={collectionLocations}
             bounds={mapBounds}
             filters={EMPTY_FILTERS}
             styleUrl={STYLES[mapStyle]}
             onMapReady={handleMapReady}
             enableInitialRandomSelection={false}
+            highlightedPoint={focusedMedia}
+            onPointClick={handlePinClick}
+            fitToDataBounds={!!collectionId}
+            fitBoundsMaxZoom={10}
           />
           <MapFocusPanel />
           <CollectionsDrawer {...drawerProps} />
@@ -210,14 +219,18 @@ function CollectionsContainerBody({
              <div className="w-full h-full overflow-hidden flex">
           {drawerOpen ? <CollectionsDrawer {...drawerProps} /> : null}
           <div className="relative flex-1 min-w-0">
-            <Map
-              data={collectionLocations}
-              bounds={mapBounds}
-              filters={EMPTY_FILTERS}
-              styleUrl={STYLES[mapStyle]}
-              onMapReady={handleMapReady}
-              enableInitialRandomSelection={false}
-            />
+          <Map
+            data={collectionLocations}
+            bounds={mapBounds}
+            filters={EMPTY_FILTERS}
+            styleUrl={STYLES[mapStyle]}
+            onMapReady={handleMapReady}
+            enableInitialRandomSelection={false}
+            highlightedPoint={focusedMedia}
+            onPointClick={handlePinClick}
+            fitToDataBounds={!!collectionId}
+            fitBoundsMaxZoom={10}
+          />
             <MapFocusPanel />
             <TooltipProvider>
               <BasemapToggle mapStyle={mapStyle} onToggle={handleBasemapToggle} />
