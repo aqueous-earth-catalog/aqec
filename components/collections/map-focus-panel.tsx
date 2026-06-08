@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import type { MediaLocation } from "@/lib/airtable/types";
 import { Badge } from "@/components/ui/badge";
@@ -166,12 +167,19 @@ export function MapFocusPanel() {
     placement: PanelPlacement;
   } | null>(null);
 
-    useEffect(() => {
+  useEffect(() => {
     if (!map || !focusedMedia) {
       placementCacheRef.current = null;
       setPlacement(null);
       return;
     }
+
+    if (placementCacheRef.current?.id === focusedMedia.id) {
+      setPlacement(placementCacheRef.current.placement);
+      return;
+    }
+
+    setPlacement(null);
 
     function computePlacement(): PanelPlacement {
       const container = map!.getContainer();
@@ -198,32 +206,36 @@ export function MapFocusPanel() {
       );
     }
 
-    if (placementCacheRef.current?.id === focusedMedia.id) {
-      setPlacement(placementCacheRef.current.placement);
-    } else {
+    function lockPlacement() {
+      if (placementCacheRef.current?.id === focusedMedia!.id) return;
+      const next = computePlacement();
+      placementCacheRef.current = { id: focusedMedia!.id, placement: next };
+      setPlacement(next);
+    }
+
+    map.once("moveend", lockPlacement);
+    const fallback = window.setTimeout(lockPlacement, 900);
+
+    function onResize() {
+      if (!focusedMedia) return;
       const next = computePlacement();
       placementCacheRef.current = { id: focusedMedia.id, placement: next };
       setPlacement(next);
     }
 
-    function onResize() {
-      const next = computePlacement();
-      placementCacheRef.current = {
-        id: focusedMedia!.id,
-        placement: next,
-      };
-      setPlacement(next);
-    }
-
     map.on("resize", onResize);
     return () => {
+      map.off("moveend", lockPlacement);
+      window.clearTimeout(fallback);
       map.off("resize", onResize);
     };
   }, [map, focusedMedia, collectionLocations]);
 
-  if (!focusedMedia || !placement) return null;
+  if (!map || !focusedMedia || !placement) return null;
 
-  return (
+  const mapContainer = map.getContainer();
+
+  return createPortal(
     <div
       className="absolute z-20 w-[min(18rem,calc(100%-1.5rem))] max-h-[min(40vh,320px)] overflow-y-auto rounded-xl border bg-background shadow-lg pointer-events-auto"
       style={{
@@ -251,6 +263,7 @@ export function MapFocusPanel() {
       <div className="p-3">
         <MediaEntryPanel media={focusedMedia} />
       </div>
-    </div>
+    </div>,
+    mapContainer
   );
 }
