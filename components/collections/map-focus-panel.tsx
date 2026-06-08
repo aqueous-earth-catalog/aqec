@@ -231,8 +231,29 @@ export function MapFocusPanel() {
       setPlacement(next);
     }
 
-    map.once("moveend", lockPlacement);
-    const fallback = window.setTimeout(lockPlacement, 900);
+    function pinOnScreen(): boolean {
+      const container = map!.getContainer();
+      const p = map!.project([
+        focusedMedia!.longitude,
+        focusedMedia!.latitude,
+      ]);
+      return (
+        p.x >= 0 &&
+        p.x <= container.clientWidth &&
+        p.y >= 0 &&
+        p.y <= container.clientHeight
+      );
+    }
+
+    let fallback: ReturnType<typeof window.setTimeout> | undefined;
+
+    if (pinOnScreen()) {
+      lockPlacement();
+    } else {
+      setPlacement(null);
+      map.once("moveend", lockPlacement);
+      fallback = window.setTimeout(lockPlacement, 500);
+    }
 
     function onResize() {
       if (!focusedMedia) return;
@@ -244,9 +265,11 @@ export function MapFocusPanel() {
     map.on("resize", onResize);
     return () => {
       map.off("moveend", lockPlacement);
-      window.clearTimeout(fallback);
+      if (fallback) window.clearTimeout(fallback);
       map.off("resize", onResize);
     };
+
+    
   }, [map, focusedMedia, collectionLocations]);
 
   if (!map || !focusedMedia || !placement) return null;
