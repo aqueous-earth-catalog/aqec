@@ -195,7 +195,7 @@ function CollectionsContainerBody({
   return (
     <div className="w-full relative h-[calc(100vh-4rem)]">
       {isTablet ? (
-        <div className="relative w-full h-full overflow-hidden">
+      <div className="relative flex-1 min-w-0 overflow-hidden">
         <Map
             data={collectionLocations}
             bounds={mapBounds}
@@ -218,7 +218,7 @@ function CollectionsContainerBody({
         
              <div className="w-full h-full overflow-hidden flex">
           {drawerOpen ? <CollectionsDrawer {...drawerProps} /> : null}
-          <div className="relative flex-1 min-w-0">
+          <div className="relative flex-1 min-w-0 overflow-hidden">
           <Map
             data={collectionLocations}
             bounds={mapBounds}
