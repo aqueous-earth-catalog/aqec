@@ -54,12 +54,40 @@ interface CollectionsContainerProps {
   allMediaPoints: MediaLocation[];
   bodyById: Record<string, ReactNode>;
 }
+interface CollectionsContainerBodyProps extends CollectionsContainerProps {
+  collectionLocations: MediaLocation[];
+}
 
-export default function CollectionsContainer({
+export default function CollectionsContainer(props: CollectionsContainerProps) {
+  const searchParams = useSearchParams();
+  const collectionId = searchParams.get("collectionId");
+
+  const selectedCollection = collectionId
+    ? props.collections.find((c) => c.id === collectionId)
+    : null;
+
+  const collectionLocations = useMemo(() => {
+    if (!selectedCollection) return [];
+    return resolveLocationsForCollection(selectedCollection, props.allMediaPoints);
+  }, [selectedCollection, props.allMediaPoints]);
+
+  return (
+    <CollectionMapProvider collectionLocations={collectionLocations}>
+      <CollectionsContainerBody
+        {...props}
+        collectionLocations={collectionLocations}
+      />
+    </CollectionMapProvider>
+  );
+}
+
+function CollectionsContainerBody({
   collections,
   allMediaPoints,
   bodyById,
-}: CollectionsContainerProps) {
+  collectionLocations,
+}: CollectionsContainerBodyProps) {
+  
   const searchParams = useSearchParams();
   const collectionId = searchParams.get("collectionId");
   const mediaPointId = searchParams.get("mediaPointId");
@@ -76,15 +104,6 @@ export default function CollectionsContainer({
   useLayoutEffect(() => {
     setDrawerWidthPx(clampDrawerWidthPx(defaultCollectionsDrawerWidthPx()));
   }, []);
-
-  const selectedCollection = collectionId
-    ? collections.find((c) => c.id === collectionId)
-    : null;
-
-  const collectionLocations = useMemo(() => {
-    if (!selectedCollection) return [];
-    return resolveLocationsForCollection(selectedCollection, allMediaPoints);
-  }, [selectedCollection, allMediaPoints]);
 
   // Same bounds as the full catalog so the globe zoom matches the map view.
   const mapBounds = useMemo(() => computeMapBounds(allMediaPoints), [allMediaPoints]);
@@ -169,7 +188,6 @@ export default function CollectionsContainer({
   };
 
   return (
-    <CollectionMapProvider collectionLocations={collectionLocations}>
     <div className="w-full relative h-[calc(100vh-4rem)]">
       {isTablet ? (
         <div className="relative w-full h-full overflow-hidden">
@@ -210,6 +228,4 @@ export default function CollectionsContainer({
       
       )}
     </div>
-    </CollectionMapProvider>
-  ); // end of return
 }  
