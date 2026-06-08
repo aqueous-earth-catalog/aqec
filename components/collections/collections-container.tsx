@@ -19,6 +19,8 @@ import { CollectionsDrawer } from "@/components/collections/collections-drawer";
 import { BasemapToggle } from "@/components/basemap-toggle";
 import { useIsTablet } from "@/components/hooks/use-tablet";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { CollectionMapProvider, useCollectionMap } from "@/components/collections/collection-map-context";
+import { MapFocusPanel } from "@/components/collections/map-focus-panel";
 
 const MIN_DRAWER_WIDTH_PX = 280;
 const DEFAULT_DRAWER_WIDTH_WIDE_PX = 384;
@@ -53,7 +55,7 @@ interface CollectionsContainerProps {
   bodyById: Record<string, ReactNode>;
 }
 
-export default function CollectionsContainer({
+function CollectionsContainerInner({
   collections,
   allMediaPoints,
   bodyById,
@@ -69,6 +71,7 @@ export default function CollectionsContainer({
   const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
   const isTablet = useIsTablet();
+  const { registerMap, clearFocus } = useCollectionMap();
 
   useLayoutEffect(() => {
     setDrawerWidthPx(clampDrawerWidthPx(defaultCollectionsDrawerWidthPx()));
@@ -119,16 +122,24 @@ export default function CollectionsContainer({
       duration: 800,
     });
   }, [isMapReady, collectionId, collectionLocations, mediaPointId]);
+
+    useEffect(() => {
+    if (mediaPointId) clearFocus();
+  }, [mediaPointId, clearFocus]);
   
   if (collectionId !== prevCollectionId) {
     setPrevCollectionId(collectionId);
     if (collectionId) setDrawerOpen(true);
   }
 
-  const handleMapReady = useCallback((map: mapboxgl.Map) => {
-    mapInstanceRef.current = map;
-    setIsMapReady(true);
-  }, []);
+  const handleMapReady = useCallback(
+    (map: mapboxgl.Map) => {
+      mapInstanceRef.current = map;
+      registerMap(map);
+      setIsMapReady(true);
+    },
+    [registerMap]
+  );
 
   const handleDrawerToggle = useCallback(() => {
     setDrawerOpen((prev) => !prev);
@@ -169,6 +180,7 @@ export default function CollectionsContainer({
             onMapReady={handleMapReady}
             enableInitialRandomSelection={false}
           />
+          <MapFocusPanel />
           <CollectionsDrawer {...drawerProps} />
           <TooltipProvider>
             <BasemapToggle mapStyle={mapStyle} onToggle={handleBasemapToggle} />
@@ -178,15 +190,16 @@ export default function CollectionsContainer({
         <div className="w-full h-full overflow-hidden flex">
           {drawerOpen ? <CollectionsDrawer {...drawerProps} /> : null}
           <div className="relative flex-1 min-w-0">
-            <Map
-              data={collectionLocations}
-              bounds={mapBounds}
-              filters={EMPTY_FILTERS}
-              styleUrl={STYLES[mapStyle]}
-              onMapReady={handleMapReady}
-              enableInitialRandomSelection={false}
-            />
-            <TooltipProvider>
+          <Map
+            data={collectionLocations}
+            bounds={mapBounds}
+            filters={EMPTY_FILTERS}
+            styleUrl={STYLES[mapStyle]}
+            onMapReady={handleMapReady}
+            enableInitialRandomSelection={false}
+          />
+          <MapFocusPanel />
+          <CollectionsDrawer {...drawerProps} />
               <BasemapToggle mapStyle={mapStyle} onToggle={handleBasemapToggle} />
             </TooltipProvider>
             {!drawerOpen ? <CollectionsDrawer {...drawerProps} /> : null}
@@ -194,5 +207,14 @@ export default function CollectionsContainer({
         </div>
       )}
     </div>
+  ); // end of return
+}   // end of CollectionsContainerInner
+
+
+export default function CollectionsContainer(props: CollectionsContainerProps) {
+  return (
+    <CollectionMapProvider>
+      <CollectionsContainerInner {...props} />
+    </CollectionMapProvider>
   );
 }
