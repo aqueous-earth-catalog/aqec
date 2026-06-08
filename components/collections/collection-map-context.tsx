@@ -14,6 +14,7 @@ const FOCUS_FLY_ZOOM = 4;
 
 type CollectionMapContextValue = {
   focusedMedia: MediaLocation | null;
+  collectionLocations: MediaLocation[];
   map: mapboxgl.Map | null;
   focusOnMedia: (media: MediaLocation) => void;
   clearFocus: () => void;
@@ -24,7 +25,15 @@ const CollectionMapContext = createContext<CollectionMapContextValue | null>(
   null
 );
 
-export function CollectionMapProvider({ children }: { children: ReactNode }) {
+interface CollectionMapProviderProps {
+  children: ReactNode;
+  collectionLocations: MediaLocation[];
+}
+
+export function CollectionMapProvider({
+  children,
+  collectionLocations,
+}: CollectionMapProviderProps) {
   const [focusedMedia, setFocusedMedia] = useState<MediaLocation | null>(null);
   const [map, setMap] = useState<mapboxgl.Map | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -56,6 +65,7 @@ export function CollectionMapProvider({ children }: { children: ReactNode }) {
 
   const value: CollectionMapContextValue = {
     focusedMedia,
+    collectionLocations,
     map,
     focusOnMedia,
     clearFocus,
