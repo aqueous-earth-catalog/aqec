@@ -116,6 +116,14 @@ export function addDataLayer(
     onPointClick?: (point: MediaLocation) => void;
   }
 ) {
+    type MapWithHandlers = mapboxgl.Map & {
+    __mediaPointsData?: MediaLocation[];
+    __onPointClick?: (point: MediaLocation) => void;
+  };
+  const map = mapInstance as MapWithHandlers;
+  map.__mediaPointsData = data;
+  map.__onPointClick = options?.onPointClick;
+
   const geojson = {
     type: "FeatureCollection",
     features: data.map((point) => ({
@@ -169,11 +177,12 @@ export function addDataLayer(
       const props = feature.properties;
       if (!props?.id) return;
 
-      const point = data.find((p) => p.id === props.id);
+      const points = map.__mediaPointsData ?? [];
+      const point = points.find((p) => p.id === props.id);
       if (!point) return;
 
-      if (options?.onPointClick) {
-        options.onPointClick(point);
+      if (map.__onPointClick) {
+        map.__onPointClick(point);
         return;
       }
 
