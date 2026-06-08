@@ -39,7 +39,7 @@ export function CollectionMapProvider({
   const [map, setMap] = useState<mapboxgl.Map | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const focusedMediaRef = useRef<MediaLocation | null>(null);
-  const flySuppressUntilRef = useRef(0);
+  const programmaticFlyRef = useRef(false);
   focusedMediaRef.current = focusedMedia;
 
   const registerMap = useCallback((mapInstance: mapboxgl.Map | null) => {
@@ -55,9 +55,9 @@ export function CollectionMapProvider({
     const reduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
     ).matches;
-    const duration = reduced ? 0 : 800;
+    const duration = reduced ? 0 : 450;
 
-    flySuppressUntilRef.current = Date.now() + duration + 150;
+    programmaticFlyRef.current = true;
 
     mapInstance.flyTo({
       center: [media.longitude, media.latitude],
@@ -73,13 +73,10 @@ export function CollectionMapProvider({
   useEffect(() => {
     if (!map) return;
 
-      function onMoveEnd() {
+    function clearIfPinOffscreen() {
       const mapInstance = mapRef.current;
-      if (!mapInstance) return;
-      if (Date.now() < flySuppressUntilRef.current) return;
-
       const focused = focusedMediaRef.current;
-      if (!focused) return;
+      if (!mapInstance || !focused) return;
 
       const bounds = mapInstance.getBounds();
       if (!bounds) return;
@@ -90,8 +87,23 @@ export function CollectionMapProvider({
       }
     }
 
+    function onMoveEnd() {
+      if (programmaticFlyRef.current) {
+        programmaticFlyRef.current = false;
+        return;
+      }
+      clearIfPinOffscreen();
+    }
+
+    function onMove() {
+      if (programmaticFlyRef.current) return;
+      clearIfPinOffscreen();
+    }
+
+    map.on("move", onMove);
     map.on("moveend", onMoveEnd);
     return () => {
+      map.off("move", onMove);
       map.off("moveend", onMoveEnd);
     };
   }, [map]);
