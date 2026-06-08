@@ -7,6 +7,7 @@ import type { MediaLocation } from "@/lib/airtable/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useCollectionMap } from "@/components/collections/collection-map-context";
+import Link from "next/link";
 
 const HEADLINE_CLASS = "font-medium text-sm leading-snug";
 const PANEL_EST_WIDTH = 288;
@@ -58,9 +59,15 @@ function MediaEntryPanel({ media }: MediaEntryPanelProps) {
           {year ? ` (${year})` : ""}
         </p>
       )}
-      {director && (
+    {director && (
         <p className="text-xs text-muted-foreground">Created by {director}</p>
       )}
+      <Link
+        href={`/?mediaPointId=${media.id}`}
+        className="inline-block text-xs font-medium text-primary hover:underline pt-1"
+      >
+        More details on map view
+      </Link>
     </div>
   );
 }
