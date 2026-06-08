@@ -16,8 +16,8 @@ export function CollectionArticleScroll({
   scrollRef,
   locations,
 }: CollectionArticleScrollProps) {
-  const { focusOnMedia, clearFocus } = useCollectionMap();
-
+  const { focusOnMedia } = useCollectionMap();
+  
   useEffect(() => {
     const root = scrollRef.current;
     if (!root) return;
@@ -40,7 +40,6 @@ export function CollectionArticleScroll({
         }
 
         if (visible.size === 0) {
-          clearFocus();
           return;
         }
 
@@ -64,7 +63,7 @@ export function CollectionArticleScroll({
 
     for (const marker of markers) observer.observe(marker);
     return () => observer.disconnect();
-  }, [children, scrollRef, locations, focusOnMedia, clearFocus]);
-
+  }, [children, scrollRef, locations, focusOnMedia]);
+  
   return <>{children}</>;
 }
