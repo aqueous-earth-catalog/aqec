@@ -187,24 +187,26 @@ function CollectionsContainerInner({
           </TooltipProvider>
         </div>
       ) : (
-        <div className="w-full h-full overflow-hidden flex">
+        
+             <div className="w-full h-full overflow-hidden flex">
           {drawerOpen ? <CollectionsDrawer {...drawerProps} /> : null}
           <div className="relative flex-1 min-w-0">
-          <Map
-            data={collectionLocations}
-            bounds={mapBounds}
-            filters={EMPTY_FILTERS}
-            styleUrl={STYLES[mapStyle]}
-            onMapReady={handleMapReady}
-            enableInitialRandomSelection={false}
-          />
-          <MapFocusPanel />
-          <CollectionsDrawer {...drawerProps} />
+            <Map
+              data={collectionLocations}
+              bounds={mapBounds}
+              filters={EMPTY_FILTERS}
+              styleUrl={STYLES[mapStyle]}
+              onMapReady={handleMapReady}
+              enableInitialRandomSelection={false}
+            />
+            <MapFocusPanel />
+            <TooltipProvider>
               <BasemapToggle mapStyle={mapStyle} onToggle={handleBasemapToggle} />
             </TooltipProvider>
             {!drawerOpen ? <CollectionsDrawer {...drawerProps} /> : null}
           </div>
         </div>
+      
       )}
     </div>
   ); // end of return
