@@ -111,7 +111,10 @@ export function setupKeyboardNav(
 export function addDataLayer(
   mapInstance: mapboxgl.Map,
   data: MediaLocation[],
-  selected?: MediaLocation | null
+  selected?: MediaLocation | null,
+  options?: {
+    onPointClick?: (point: MediaLocation) => void;
+  }
 ) {
   const geojson = {
     type: "FeatureCollection",
@@ -159,16 +162,26 @@ export function addDataLayer(
       },
     });
 
-    mapInstance.on("click", "media-points-layer", (e) => {
+      mapInstance.on("click", "media-points-layer", (e) => {
       if (!e.features || e.features.length === 0) return;
 
       const feature = e.features[0];
       const props = feature.properties;
+      if (!props?.id) return;
 
-      if (props && props.id) {
-        const params = addQueryParameter("mediaPointId", props.id);
-        window.history.pushState({}, "", params);
+      const point = data.find((p) => p.id === props.id);
+      if (!point) return;
+
+      if (options?.onPointClick) {
+        options.onPointClick(point);
+        return;
       }
+
+      window.history.pushState(
+        {},
+        "",
+        addQueryParameter("mediaPointId", props.id)
+      );
     });
 
     mapInstance.on("mouseenter", "media-points-layer", () => {
