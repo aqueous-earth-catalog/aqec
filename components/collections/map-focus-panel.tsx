@@ -113,18 +113,39 @@ function pinNearRect(
   return dist < PIN_BUFFER;
 }
 
+function isFullyInside(
+  rect: { left: number; top: number; right: number; bottom: number },
+  mapW: number,
+  mapH: number
+): boolean {
+  return (
+    rect.left >= EDGE_PADDING &&
+    rect.top >= EDGE_PADDING &&
+    rect.right <= mapW - EDGE_PADDING &&
+    rect.bottom <= mapH - EDGE_PADDING
+  );
+}
+
 function scorePlacement(
   rect: { left: number; top: number; right: number; bottom: number },
   mapW: number,
   mapH: number,
-  otherPins: { x: number; y: number }[]
+  otherPins: { x: number; y: number }[],
+  side: "left" | "right" | "above" | "below",
+  pinX: number
 ): number {
   let score = 0;
 
-  if (rect.left < EDGE_PADDING) score -= 800;
-  if (rect.top < EDGE_PADDING) score -= 400;
-  if (rect.right > mapW - EDGE_PADDING) score -= 800;
-  if (rect.bottom > mapH - EDGE_PADDING) score -= 400;
+  if (rect.left < EDGE_PADDING) score -= 5000;
+  if (rect.top < EDGE_PADDING) score -= 2000;
+  if (rect.right > mapW - EDGE_PADDING) score -= 5000;
+  if (rect.bottom > mapH - EDGE_PADDING) score -= 2000;
+
+  // Pin near drawer (left side of map) → prefer panel on the right
+  if (pinX < mapW * 0.45) {
+    if (side === "right") score += 800;
+    if (side === "left") score -= 800;
+  }
 
   for (const pin of otherPins) {
     if (pinNearRect(pin.x, pin.y, rect)) score -= 1000;
@@ -140,10 +161,10 @@ function choosePlacement(
   mapH: number
 ): PanelPlacement {
   const sides: Array<"left" | "right" | "above" | "below"> = [
-    "left",
     "right",
-    "above",
     "below",
+    "above",
+    "left",
   ];
 
   const transforms: Record<string, string> = {
@@ -153,27 +174,57 @@ function choosePlacement(
     below: "translate(-50%, 0)",
   };
 
-  let best: PanelPlacement = {
-    left: focusedPin.x - PIN_OFFSET,
-    top: focusedPin.y,
-    transform: "translate(-100%, -50%)",
-  };
+  let best: PanelPlacement | null = null;
   let bestScore = -Infinity;
 
   for (const side of sides) {
     const rect = panelRect(focusedPin.x, focusedPin.y, side);
-    const score = scorePlacement(rect, mapW, mapH, otherPins);
+    if (!isFullyInside(rect, mapW, mapH)) continue;
+
+    const score = scorePlacement(
+      rect,
+      mapW,
+      mapH,
+      otherPins,
+      side,
+      focusedPin.x
+    );
     if (score > bestScore) {
       bestScore = score;
       best = {
-        left: side === "left" ? focusedPin.x - PIN_OFFSET : side === "right" ? focusedPin.x + PIN_OFFSET : focusedPin.x,
-        top: side === "above" ? focusedPin.y - PIN_OFFSET : side === "below" ? focusedPin.y + PIN_OFFSET : focusedPin.y,
+        left:
+          side === "left"
+            ? focusedPin.x - PIN_OFFSET
+            : side === "right"
+              ? focusedPin.x + PIN_OFFSET
+              : focusedPin.x,
+        top:
+          side === "above"
+            ? focusedPin.y - PIN_OFFSET
+            : side === "below"
+              ? focusedPin.y + PIN_OFFSET
+              : focusedPin.y,
         transform: transforms[side],
       };
     }
   }
 
-  return best;
+  // Fallback: right of pin, vertically centered
+  if (best) return best;
+
+  const anchorX = Math.min(
+    focusedPin.x + PIN_OFFSET,
+    mapW - PANEL_EST_WIDTH - EDGE_PADDING
+  );
+
+  return {
+    left: Math.max(EDGE_PADDING + PANEL_EST_WIDTH, anchorX),
+    top: Math.max(
+      EDGE_PADDING + PANEL_EST_HEIGHT / 2,
+      Math.min(focusedPin.y, mapH - EDGE_PADDING - PANEL_EST_HEIGHT / 2)
+    ),
+    transform: "translate(0, -50%)",
+  };
 }
 
 export function MapFocusPanel() {
