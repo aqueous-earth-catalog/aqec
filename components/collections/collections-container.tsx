@@ -99,8 +99,8 @@ function CollectionsContainerBody({
   const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
   const isTablet = useIsTablet();
-  const { registerMap, focusOnMedia, clearFocus } = useCollectionMap();
-
+  const { registerMap, focusOnMedia, focusedMedia } = useCollectionMap();
+  
   useLayoutEffect(() => {
     setDrawerWidthPx(clampDrawerWidthPx(defaultCollectionsDrawerWidthPx()));
   }, []);
