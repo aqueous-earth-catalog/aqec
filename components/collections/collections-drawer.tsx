@@ -15,7 +15,6 @@ import { Button } from "@/components/ui/button";
 import { ResultCard } from "@/components/result-card";
 import { useIsTablet } from "@/components/hooks/use-tablet";
 import { CollectionArticleScroll } from "@/components/collections/collection-article-scroll";
-import { useCollectionMap } from "@/components/collections/collection-map-context";
 
 interface CollectionsDrawerProps {
   collections: Collection[];
@@ -45,8 +44,7 @@ export function CollectionsDrawer({
   const drawerRef = useRef<HTMLDivElement>(null);
 
   const articleScrollRef = useRef<HTMLDivElement>(null);
-  const { clearFocus } = useCollectionMap();
-
+ 
   const selectedCollection = collectionId
     ? collections.find((c) => c.id === collectionId)
     : null;
@@ -97,10 +95,6 @@ export function CollectionsDrawer({
   useEffect(() => {
     if (isOpen && drawerRef.current) drawerRef.current.focus();
   }, [isOpen, selectedCollection]);
-
-  useEffect(() => {
-    if (mediaPointId) clearFocus();
-  }, [mediaPointId, clearFocus]);
 
   if (!isOpen) {
     
