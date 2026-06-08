@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import type { MediaLocation } from "@/lib/airtable/types";
 import { Badge } from "@/components/ui/badge";
@@ -161,14 +161,19 @@ export function MapFocusPanel() {
   const { focusedMedia, collectionLocations, map, clearFocus } =
     useCollectionMap();
   const [placement, setPlacement] = useState<PanelPlacement | null>(null);
+    const placementCacheRef = useRef<{
+    id: string;
+    placement: PanelPlacement;
+  } | null>(null);
 
-  useEffect(() => {
+    useEffect(() => {
     if (!map || !focusedMedia) {
+      placementCacheRef.current = null;
       setPlacement(null);
       return;
     }
 
-    function updatePosition() {
+    function computePlacement(): PanelPlacement {
       const container = map!.getContainer();
       const mapW = container.clientWidth;
       const mapH = container.clientHeight;
@@ -185,25 +190,34 @@ export function MapFocusPanel() {
           return { x: p.x, y: p.y };
         });
 
-      setPlacement(
-        choosePlacement(
-          { x: focusedPin.x, y: focusedPin.y },
-          otherPins,
-          mapW,
-          mapH
-        )
+      return choosePlacement(
+        { x: focusedPin.x, y: focusedPin.y },
+        otherPins,
+        mapW,
+        mapH
       );
     }
 
-    updatePosition();
-    map.on("move", updatePosition);
-    map.on("zoom", updatePosition);
-    map.on("resize", updatePosition);
+    if (placementCacheRef.current?.id === focusedMedia.id) {
+      setPlacement(placementCacheRef.current.placement);
+    } else {
+      const next = computePlacement();
+      placementCacheRef.current = { id: focusedMedia.id, placement: next };
+      setPlacement(next);
+    }
 
+    function onResize() {
+      const next = computePlacement();
+      placementCacheRef.current = {
+        id: focusedMedia!.id,
+        placement: next,
+      };
+      setPlacement(next);
+    }
+
+    map.on("resize", onResize);
     return () => {
-      map.off("move", updatePosition);
-      map.off("zoom", updatePosition);
-      map.off("resize", updatePosition);
+      map.off("resize", onResize);
     };
   }, [map, focusedMedia, collectionLocations]);
 
