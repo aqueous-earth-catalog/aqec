@@ -228,4 +228,5 @@ function CollectionsContainerBody({
       
       )}
     </div>
+  );
 }  
