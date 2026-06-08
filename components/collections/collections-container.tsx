@@ -55,7 +55,7 @@ interface CollectionsContainerProps {
   bodyById: Record<string, ReactNode>;
 }
 
-function CollectionsContainerInner({
+export default function CollectionsContainer({
   collections,
   allMediaPoints,
   bodyById,
@@ -169,6 +169,7 @@ function CollectionsContainerInner({
   };
 
   return (
+    <CollectionMapProvider collectionLocations={collectionLocations}>
     <div className="w-full relative h-[calc(100vh-4rem)]">
       {isTablet ? (
         <div className="relative w-full h-full overflow-hidden">
@@ -209,14 +210,6 @@ function CollectionsContainerInner({
       
       )}
     </div>
-  ); // end of return
-}   // end of CollectionsContainerInner
-
-
-export default function CollectionsContainer(props: CollectionsContainerProps) {
-  return (
-    <CollectionMapProvider>
-      <CollectionsContainerInner {...props} />
     </CollectionMapProvider>
-  );
-}
+  ); // end of return
+}  
