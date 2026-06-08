@@ -14,6 +14,7 @@ const FOCUS_FLY_ZOOM = 4;
 
 type CollectionMapContextValue = {
   focusedMedia: MediaLocation | null;
+  map: mapboxgl.Map | null;
   focusOnMedia: (media: MediaLocation) => void;
   clearFocus: () => void;
   registerMap: (map: mapboxgl.Map | null) => void;
@@ -25,22 +26,24 @@ const CollectionMapContext = createContext<CollectionMapContextValue | null>(
 
 export function CollectionMapProvider({ children }: { children: ReactNode }) {
   const [focusedMedia, setFocusedMedia] = useState<MediaLocation | null>(null);
+  const [map, setMap] = useState<mapboxgl.Map | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
 
-  const registerMap = useCallback((map: mapboxgl.Map | null) => {
-    mapRef.current = map;
+  const registerMap = useCallback((mapInstance: mapboxgl.Map | null) => {
+    mapRef.current = mapInstance;
+    setMap(mapInstance);
   }, []);
 
   const focusOnMedia = useCallback((media: MediaLocation) => {
     setFocusedMedia(media);
-    const map = mapRef.current;
-    if (!map) return;
+    const mapInstance = mapRef.current;
+    if (!mapInstance) return;
 
     const reduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
     ).matches;
 
-    map.flyTo({
+    mapInstance.flyTo({
       center: [media.longitude, media.latitude],
       zoom: FOCUS_FLY_ZOOM,
       duration: reduced ? 0 : 800,
@@ -53,6 +56,7 @@ export function CollectionMapProvider({ children }: { children: ReactNode }) {
 
   const value: CollectionMapContextValue = {
     focusedMedia,
+    map,
     focusOnMedia,
     clearFocus,
     registerMap,
