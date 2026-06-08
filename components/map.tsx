@@ -9,11 +9,10 @@ import { addQueryParameter, hasActiveFilters } from "@/lib/utils";
 import {
   addDataLayer,
   setupKeyboardNav,
-  DEFAULT_BOUNDS,
 } from "@/lib/map-utils";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
-/** Globe size for full-catalog view. Higher = globe looks larger. Try 2.2 → 2.5. */
+/** Globe size for full-catalog view. Higher = globe looks larger. */
 const MAP_CATALOG_ZOOM = 2.5;
 
 interface MapProps {
@@ -23,7 +22,13 @@ interface MapProps {
   styleUrl: string;
   onMapReady?: (mapInstance: mapboxgl.Map) => void;
   enableInitialRandomSelection?: boolean;
-
+  /** Scroll/panel focus — green pin without URL (collections). */
+  highlightedPoint?: MediaLocation | null;
+  /** Collections: pin click opens panel instead of URL. */
+  onPointClick?: (point: MediaLocation) => void;
+  /** Collections: stay fitted to bounds instead of globe zoom. */
+  fitToDataBounds?: boolean;
+  fitBoundsMaxZoom?: number;
 }
 
 export function Map({
@@ -33,20 +38,25 @@ export function Map({
   styleUrl,
   onMapReady,
   enableInitialRandomSelection = true,
+  highlightedPoint = null,
+  onPointClick,
+  fitToDataBounds = false,
+  fitBoundsMaxZoom = 10,
 }: MapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const searchParams = useSearchParams();
   const mediaPointId = searchParams.get("mediaPointId");
+  const onPointClickRef = useRef(onPointClick);
+  onPointClickRef.current = onPointClick;
 
   const selectedMediaPoint = mediaPointId
     ? data.find((point) => point.id === mediaPointId)
     : null;
 
-  // Create the Mapbox instance once on mount
-  // /Sets up zoom/nav controls,
-  // keyboard accessibility, and notifies the parent when the map is ready.
+  const effectiveSelected = selectedMediaPoint ?? highlightedPoint ?? null;
+
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
@@ -80,8 +90,6 @@ export function Map({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // When the basemap style URL changes, swap the style and re-add the data
-  // layer + selection styling once the new style finishes loading.
   const prevStyleRef = useRef(styleUrl);
   useEffect(() => {
     if (!map.current || !isMapLoaded || styleUrl === prevStyleRef.current)
@@ -90,7 +98,9 @@ export function Map({
     map.current.setStyle(styleUrl);
     map.current.once("style.load", () => {
       if (map.current) {
-        addDataLayer(map.current, data, selectedMediaPoint);
+        addDataLayer(map.current, data, effectiveSelected, {
+          onPointClick: (point) => onPointClickRef.current?.(point),
+        });
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -98,27 +108,35 @@ export function Map({
 
   useEffect(() => {
     if (!map.current || !isMapLoaded || !bounds) return;
-    // fitBounds picks center from pins; setZoom sets globe size (padding ignored on globe).
-    map.current.fitBounds(bounds, { duration: 0 });
-    map.current.setZoom(MAP_CATALOG_ZOOM);
-  }, [isMapLoaded, bounds]);
-  
-  // Sync the GeoJSON data layer with selection included in a single
-  // setData() call to avoid intermediate frames with missing styling.
+
+    map.current.fitBounds(bounds, {
+      duration: 0,
+      maxZoom: fitBoundsMaxZoom,
+      padding: 48,
+    });
+
+    if (!fitToDataBounds) {
+      map.current.setZoom(MAP_CATALOG_ZOOM);
+    }
+  }, [isMapLoaded, bounds, fitToDataBounds, fitBoundsMaxZoom]);
+
   useEffect(() => {
     if (!map.current || !isMapLoaded) return;
 
-    addDataLayer(map.current, data, selectedMediaPoint);
+    addDataLayer(map.current, data, effectiveSelected, {
+      onPointClick: (point) => onPointClickRef.current?.(point),
+    });
 
-    if (selectedMediaPoint) {
+    if (selectedMediaPoint && !onPointClickRef.current) {
       map.current.flyTo({
-        center: [selectedMediaPoint.longitude, selectedMediaPoint.latitude],
+        center: [
+          selectedMediaPoint.longitude,
+          selectedMediaPoint.latitude,
+        ],
       });
     }
-  }, [isMapLoaded, data, selectedMediaPoint]);
+  }, [isMapLoaded, data, effectiveSelected, selectedMediaPoint]);
 
-  // Auto-select a random point on first load so the UI isn't empty.
-  // Skipped if a point is already selected or filters are active.
   useEffect(() => {
     if (
       enableInitialRandomSelection === false ||
@@ -136,8 +154,6 @@ export function Map({
       "",
       addQueryParameter("mediaPointId", data[randomIndex].id)
     );
-    // Omitting selectedMediaPoint since it would retrigger a selection when the media panel is closed.
-    // Omitting data since data changes anytime the url changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMapLoaded]);
 
