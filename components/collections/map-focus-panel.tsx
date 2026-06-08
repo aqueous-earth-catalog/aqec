@@ -245,8 +245,8 @@ export function MapFocusPanel() {
       );
     }
 
-    let fallback: ReturnType<typeof window.setTimeout> | undefined;
-
+    let fallback: number | undefined;
+    
     if (pinOnScreen()) {
       lockPlacement();
     } else {
