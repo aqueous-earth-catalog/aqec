@@ -73,13 +73,15 @@ export function CollectionMapProvider({
   useEffect(() => {
     if (!map) return;
 
-    function onMoveEnd() {
+      function onMoveEnd() {
+      const mapInstance = mapRef.current;
+      if (!mapInstance) return;
       if (Date.now() < flySuppressUntilRef.current) return;
 
       const focused = focusedMediaRef.current;
       if (!focused) return;
 
-      const bounds = map.getBounds();
+      const bounds = mapInstance.getBounds();
       const inView = bounds.contains([focused.longitude, focused.latitude]);
       if (!inView) {
         setFocusedMedia(null);
