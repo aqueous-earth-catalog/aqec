@@ -9,8 +9,57 @@ function stripThe(s: string) {
   return norm(s).replace(/^the\s+/, "");
 }
 
-function mediaTitle(loc: MediaLocation): string {
-  return loc.media?.name ?? loc.name ?? "";
+type Candidate = {
+  loc: MediaLocation;
+  label: string;
+  bare: string;
+};
+
+function candidate(loc: MediaLocation, text: string): Candidate | null {
+  if (!text.trim()) return null;
+  return { loc, label: norm(text), bare: stripThe(text) };
+}
+
+/** Location name first, then film name — so multi-pin films can disambiguate. */
+function candidatesForLocation(loc: MediaLocation): Candidate[] {
+  const out: Candidate[] = [];
+  const locName = loc.name?.trim() ?? "";
+  const filmName = loc.media?.name?.trim() ?? "";
+
+  const locCand = candidate(loc, locName);
+  if (locCand) out.push(locCand);
+
+  if (filmName && filmName !== locName) {
+    const filmCand = candidate(loc, filmName);
+    if (filmCand) out.push(filmCand);
+  }
+
+  return out;
+}
+
+function isExact(c: Candidate, q: string, qBare: string) {
+  return (
+    c.label === q ||
+    c.bare === qBare ||
+    c.label === qBare ||
+    c.bare === q
+  );
+}
+
+function isPartial(c: Candidate, q: string, qBare: string) {
+  return c.label.includes(q) || c.bare.includes(qBare);
+}
+
+function isReverse(c: Candidate, q: string, qBare: string) {
+  return (
+    (c.label.length >= 4 && q.includes(c.label)) ||
+    (c.bare.length >= 4 && qBare.includes(c.bare))
+  );
+}
+
+function uniqueLocation(matches: Candidate[]): MediaLocation | null {
+  const ids = new Set(matches.map((m) => m.loc.id));
+  return ids.size === 1 ? matches[0].loc : null;
 }
 
 export function resolveFocusMediaByTitle(
@@ -21,31 +70,16 @@ export function resolveFocusMediaByTitle(
   const qBare = stripThe(title);
   if ((!q && !qBare) || locations.length === 0) return null;
 
-  const candidates = locations.map((loc) => ({
-    loc,
-    name: norm(mediaTitle(loc)),
-    bare: stripThe(mediaTitle(loc)),
-  }));
+  const candidates = locations.flatMap(candidatesForLocation);
 
-  // 1) Exact (with or without leading "The")
-  const exact = candidates.filter(
-    (c) => c.name === q || c.bare === qBare || c.name === qBare || c.bare === q
-  );
-  if (exact.length === 1) return exact[0].loc;
+  const exact = candidates.filter((c) => isExact(c, q, qBare));
+  const exactMatch = uniqueLocation(exact);
+  if (exactMatch) return exactMatch;
 
-  // 2) Catalog name contains query
-  const partial = candidates.filter(
-    (c) => c.name.includes(q) || c.bare.includes(qBare)
-  );
-  if (partial.length === 1) return partial[0].loc;
+  const partial = candidates.filter((c) => isPartial(c, q, qBare));
+  const partialMatch = uniqueLocation(partial);
+  if (partialMatch) return partialMatch;
 
-  // 3) Query contains catalog name (e.g. title="The Beach (2000)" vs catalog "The Beach")
-  const reverse = candidates.filter(
-    (c) =>
-      (c.name.length >= 4 && q.includes(c.name)) ||
-      (c.bare.length >= 4 && qBare.includes(c.bare))
-  );
-  if (reverse.length === 1) return reverse[0].loc;
-
-  return null;
+  const reverse = candidates.filter((c) => isReverse(c, q, qBare));
+  return uniqueLocation(reverse);
 }
