@@ -9,7 +9,7 @@ export function MapFocus({ title }: MapFocusProps) {
   return (
     <span
       data-map-focus-title={title}
-      className="block h-0 w-0"
+      className="block h-px w-full"
       aria-hidden="true"
     />
   );
