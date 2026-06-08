@@ -20,7 +20,18 @@ function buildPlace(media: MediaLocation): string {
 }
 
 function locationLine(media: MediaLocation): string {
-  return media.name || media.location_name || buildPlace(media) || "";
+  if (media.location_name?.trim()) return media.location_name.trim();
+
+  const fromFields = buildPlace(media);
+  if (fromFields) return fromFields;
+
+  if (media.natural_feature_name?.trim()) return media.natural_feature_name.trim();
+
+  // e.g. "The Blue Lagoon (Nanuya Levu, Fiji)" → "Nanuya Levu, Fiji"
+  const inParens = media.name?.match(/\(([^)]+)\)/);
+  if (inParens?.[1]) return inParens[1].trim();
+
+  return "";
 }
 
 interface MediaEntryPanelProps {
