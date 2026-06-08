@@ -82,6 +82,8 @@ export function CollectionMapProvider({
       if (!focused) return;
 
       const bounds = mapInstance.getBounds();
+      if (!bounds) return;
+
       const inView = bounds.contains([focused.longitude, focused.latitude]);
       if (!inView) {
         setFocusedMedia(null);
