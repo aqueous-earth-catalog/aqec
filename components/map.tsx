@@ -51,6 +51,7 @@ export function Map({
   const mediaPointId = searchParams.get("mediaPointId");
   const onPointClickRef = useRef(onPointClick);
   onPointClickRef.current = onPointClick;
+  const prevSelectedIdRef = useRef<string | null>(null);
 
   const selectedMediaPoint = mediaPointId
     ? data.find((point) => point.id === mediaPointId)
@@ -91,6 +92,7 @@ export function Map({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const hasSetCatalogBoundsRef = useRef(false);
   const prevStyleRef = useRef(styleUrl);
   useEffect(() => {
     if (!map.current || !isMapLoaded || styleUrl === prevStyleRef.current)
@@ -112,46 +114,57 @@ export function Map({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [styleUrl, isMapLoaded]);
 
-  useEffect(() => {
+   useEffect(() => {
     if (!map.current || !isMapLoaded || !bounds) return;
 
     if (fitToDataBounds) {
-      // Collections only: fit tightly to collection pins
+      // Collections: refit when collection pins change
       map.current.fitBounds(bounds, {
         duration: 0,
         maxZoom: fitBoundsMaxZoom,
         padding: 48,
       });
-    } else {
-      // Catalog map view: original globe behavior
+    } else if (!hasSetCatalogBoundsRef.current) {
+      // Catalog map view: set globe once on load — don't reset after pin zoom
       map.current.fitBounds(bounds, { duration: 0 });
       map.current.setZoom(MAP_CATALOG_ZOOM);
+      hasSetCatalogBoundsRef.current = true;
     }
   }, [isMapLoaded, bounds, fitToDataBounds, fitBoundsMaxZoom]);
 
-  useEffect(() => {
+    useEffect(() => {
     if (!map.current || !isMapLoaded) return;
 
-        addDataLayer(
-          map.current,
-          data,
-          effectiveSelected,
-          onPointClick
-            ? { onPointClick: (point) => onPointClickRef.current?.(point) }
-            : undefined
-        );
+    const highlight = onPointClick ? effectiveSelected : selectedMediaPoint;
 
-    if (selectedMediaPoint && !onPointClick) {
-      map.current.flyTo({
-        center: [
-          selectedMediaPoint.longitude,
-          selectedMediaPoint.latitude,
-        ],
-        zoom: DEFAULT_ZOOM,
-      });
-    }
-  }, [isMapLoaded, data, effectiveSelected, selectedMediaPoint]);
+    addDataLayer(
+      map.current,
+      data,
+      highlight,
+      onPointClick
+        ? { onPointClick: (point) => onPointClickRef.current?.(point) }
+        : undefined
+    );
+  }, [isMapLoaded, data, selectedMediaPoint, effectiveSelected, onPointClick]);
 
+  useEffect(() => {
+    if (!map.current || !isMapLoaded || onPointClick) return;
+
+    const id = selectedMediaPoint?.id ?? null;
+    if (id === prevSelectedIdRef.current) return;
+    prevSelectedIdRef.current = id;
+
+    if (!selectedMediaPoint) return;
+
+    map.current.flyTo({
+      center: [
+        selectedMediaPoint.longitude,
+        selectedMediaPoint.latitude,
+      ],
+      zoom: DEFAULT_ZOOM,
+    });
+  }, [isMapLoaded, selectedMediaPoint, onPointClick]);
+  
   useEffect(() => {
     if (
       enableInitialRandomSelection === false ||
