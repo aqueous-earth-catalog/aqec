@@ -331,7 +331,7 @@ export function MapFocusPanel() {
 
   return createPortal(
     <div
-     className="absolute z-20 w-[min(18rem,calc(100%-1.5rem))] max-h-[min(40vh,320px)] overflow-y-auto rounded-xl border border-border/60 bg-background/80 backdrop-blur-sm shadow-lg pointer-events-auto"
+     className="absolute z-20 w-[min(18rem,calc(100%-1.5rem))] max-h-[min(40vh,320px)] overflow-y-auto rounded-xl border border-border/60 bg-background/70 backdrop-blur-sm shadow-lg pointer-events-auto"
       style={{
         left: placement.left,
         top: placement.top,
