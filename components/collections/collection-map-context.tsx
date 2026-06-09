@@ -55,7 +55,7 @@ export function CollectionMapProvider({
     const reduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
     ).matches;
-    const duration = reduced ? 0 : 450;
+    const duration = reduced ? 0 : 1000;
 
     programmaticFlyRef.current = true;
 
