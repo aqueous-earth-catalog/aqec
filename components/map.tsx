@@ -8,6 +8,7 @@ import { MapFilters, MediaLocation } from "@/lib/airtable/types";
 import { addQueryParameter, hasActiveFilters } from "@/lib/utils";
 import {
   addDataLayer,
+  DEFAULT_ZOOM,
   setupKeyboardNav,
 } from "@/lib/map-utils";
 
@@ -140,12 +141,13 @@ export function Map({
             : undefined
         );
 
-    if (selectedMediaPoint && !onPointClickRef.current) {
+    if (selectedMediaPoint && !onPointClick) {
       map.current.flyTo({
         center: [
           selectedMediaPoint.longitude,
           selectedMediaPoint.latitude,
         ],
+        zoom: DEFAULT_ZOOM,
       });
     }
   }, [isMapLoaded, data, effectiveSelected, selectedMediaPoint]);
