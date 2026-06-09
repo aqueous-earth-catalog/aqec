@@ -98,9 +98,14 @@ export function Map({
     map.current.setStyle(styleUrl);
     map.current.once("style.load", () => {
       if (map.current) {
-        addDataLayer(map.current, data, effectiveSelected, {
-          onPointClick: (point) => onPointClickRef.current?.(point),
-        });
+        addDataLayer(
+          map.current,
+          data,
+          effectiveSelected,
+          onPointClick
+            ? { onPointClick: (point) => onPointClickRef.current?.(point) }
+            : undefined
+        );
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -123,9 +128,14 @@ export function Map({
   useEffect(() => {
     if (!map.current || !isMapLoaded) return;
 
-    addDataLayer(map.current, data, effectiveSelected, {
-      onPointClick: (point) => onPointClickRef.current?.(point),
-    });
+        addDataLayer(
+          map.current,
+          data,
+          effectiveSelected,
+          onPointClick
+            ? { onPointClick: (point) => onPointClickRef.current?.(point) }
+            : undefined
+        );
 
     if (selectedMediaPoint && !onPointClickRef.current) {
       map.current.flyTo({
