@@ -114,13 +114,16 @@ export function Map({
   useEffect(() => {
     if (!map.current || !isMapLoaded || !bounds) return;
 
-    map.current.fitBounds(bounds, {
-      duration: 0,
-      maxZoom: fitBoundsMaxZoom,
-      padding: 48,
-    });
-
-    if (!fitToDataBounds) {
+    if (fitToDataBounds) {
+      // Collections only: fit tightly to collection pins
+      map.current.fitBounds(bounds, {
+        duration: 0,
+        maxZoom: fitBoundsMaxZoom,
+        padding: 48,
+      });
+    } else {
+      // Catalog map view: original globe behavior
+      map.current.fitBounds(bounds, { duration: 0 });
       map.current.setZoom(MAP_CATALOG_ZOOM);
     }
   }, [isMapLoaded, bounds, fitToDataBounds, fitBoundsMaxZoom]);
