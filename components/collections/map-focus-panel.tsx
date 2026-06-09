@@ -303,7 +303,7 @@ export function MapFocusPanel() {
     } else {
       setPlacement(null);
       map.once("moveend", lockPlacement);
-      fallback = window.setTimeout(lockPlacement, 500);
+      fallback = window.setTimeout(lockPlacement, 1400);
     }
 
     function onResize() {
