@@ -14,7 +14,9 @@ const PANEL_EST_WIDTH = 288;
 const PANEL_EST_HEIGHT = 160;
 const PIN_BUFFER = 20;
 const EDGE_PADDING = 12;
-const PIN_OFFSET = 12;
+const PIN_RADIUS = 12;
+const PANEL_GAP = 16;
+const PIN_EDGE_OFFSET = PIN_RADIUS + PANEL_GAP;
 
 function buildPlace(media: MediaLocation): string {
   return [media.city, media.region, media.country].filter(Boolean).join(", ");
@@ -87,18 +89,18 @@ function panelRect(
   const h = PANEL_EST_HEIGHT;
 
   if (side === "left") {
-    const right = pinX - PIN_OFFSET;
+    const right = pinX - PIN_EDGE_OFFSET;
     return { left: right - w, top: pinY - h / 2, right, bottom: pinY + h / 2 };
   }
   if (side === "right") {
-    const left = pinX + PIN_OFFSET;
+    const left = pinX + PIN_EDGE_OFFSET;
     return { left, top: pinY - h / 2, right: left + w, bottom: pinY + h / 2 };
   }
   if (side === "above") {
-    const bottom = pinY - PIN_OFFSET;
+    const bottom = pinY - PIN_EDGE_OFFSET;
     return { left: pinX - w / 2, top: bottom - h, right: pinX + w / 2, bottom };
   }
-  const top = pinY + PIN_OFFSET;
+  const top = pinY + PIN_EDGE_OFFSET;
   return { left: pinX - w / 2, top, right: pinX + w / 2, bottom: top + h };
 }
 
@@ -194,15 +196,15 @@ function choosePlacement(
       best = {
         left:
           side === "left"
-            ? focusedPin.x - PIN_OFFSET
+            ? focusedPin.x - PIN_EDGE_OFFSET
             : side === "right"
-              ? focusedPin.x + PIN_OFFSET
+              ? focusedPin.x + PIN_EDGE_OFFSET
               : focusedPin.x,
         top:
           side === "above"
-            ? focusedPin.y - PIN_OFFSET
+            ? focusedPin.y - PIN_EDGE_OFFSET
             : side === "below"
-              ? focusedPin.y + PIN_OFFSET
+              ? focusedPin.y + PIN_EDGE_OFFSET
               : focusedPin.y,
         transform: transforms[side],
       };
@@ -213,7 +215,7 @@ function choosePlacement(
   if (best) return best;
 
   const anchorX = Math.min(
-    focusedPin.x + PIN_OFFSET,
+    focusedPin.x + PIN_EDGE_OFFSET,
     mapW - PANEL_EST_WIDTH - EDGE_PADDING
   );
 
