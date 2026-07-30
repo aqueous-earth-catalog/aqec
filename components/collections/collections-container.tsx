@@ -195,8 +195,8 @@ function CollectionsContainerBody({
   return (
     <div className="w-full relative h-[calc(100vh-4rem)]">
       {isTablet ? (
-      <div className="relative flex-1 min-w-0 overflow-hidden">
-        <Map
+<div className="relative flex-1 h-full min-w-0 overflow-hidden">
+  <Map
             data={collectionLocations}
             bounds={mapBounds}
             filters={EMPTY_FILTERS}
