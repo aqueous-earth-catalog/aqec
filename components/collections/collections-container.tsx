@@ -208,7 +208,6 @@ function CollectionsContainerBody({
             fitToDataBounds={!!collectionId}
             fitBoundsMaxZoom={10}
           />
-          <MapFocusPanel />
           <CollectionsDrawer {...drawerProps} />
           <TooltipProvider>
             <BasemapToggle mapStyle={mapStyle} onToggle={handleBasemapToggle} />
