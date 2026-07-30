@@ -144,7 +144,7 @@ export function CollectionsDrawer({
       </div>
       <div
         ref={articleScrollRef}
-        className="overflow-y-auto flex-1 styled-scrollbar pl-6 pr-4 pb-4 space-y-6"
+        className="overflow-y-auto overflow-x-hidden flex-1 min-w-0 styled-scrollbar pl-6 pr-4 pb-4 space-y-6"
       >
       <div className="prose prose-sm max-w-none dark:prose-invert prose-p:leading-relaxed">
           <h2>{selectedCollection.title}</h2>
@@ -190,7 +190,7 @@ export function CollectionsDrawer({
           {isMobile ? <ChevronDown className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
         </Button>
       </div>
-      <div className="overflow-y-auto flex-1 styled-scrollbar">
+     <div className="overflow-y-auto overflow-x-hidden flex-1 min-w-0 styled-scrollbar">
         {collections.map((collection) => (
           <button
             key={collection.id}
