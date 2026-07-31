@@ -298,7 +298,7 @@ export function MapFocusPanel() {
         mapW,
         mapH,
         panelW,
-        panelH
+        panelH,
         isTablet
     );
       }
