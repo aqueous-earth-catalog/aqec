@@ -98,10 +98,28 @@ type PanelPlacement = {
 function panelRect(
   pinX: number,
   pinY: number,
-  side: "left" | "right" | "above" | "below"
+  side: "left" | "right" | "above" | "below",
+  panelW: number,
+  panelH: number
 ): { left: number; top: number; right: number; bottom: number } {
-  const w = PANEL_EST_WIDTH;
-  const h = PANEL_EST_HEIGHT;
+  const w = panelW;
+  const h = panelH;
+
+  if (side === "left") {
+    const right = pinX - PIN_EDGE_OFFSET;
+    return { left: right - w, top: pinY - h / 2, right, bottom: pinY + h / 2 };
+  }
+  if (side === "right") {
+    const left = pinX + PIN_EDGE_OFFSET;
+    return { left, top: pinY - h / 2, right: left + w, bottom: pinY + h / 2 };
+  }
+  if (side === "above") {
+    const bottom = pinY - PIN_EDGE_OFFSET;
+    return { left: pinX - w / 2, top: bottom - h, right: pinX + w / 2, bottom };
+  }
+  const top = pinY + PIN_EDGE_OFFSET;
+  return { left: pinX - w / 2, top, right: pinX + w / 2, bottom: top + h };
+}
 
   if (side === "left") {
     const right = pinX - PIN_EDGE_OFFSET;
@@ -175,7 +193,9 @@ function choosePlacement(
   focusedPin: { x: number; y: number },
   otherPins: { x: number; y: number }[],
   mapW: number,
-  mapH: number
+  mapH: number,
+  panelW: number,
+  panelH: number
 ): PanelPlacement {
   const sides: Array<"left" | "right" | "above" | "below"> = [
     "right",
@@ -195,7 +215,7 @@ function choosePlacement(
   let bestScore = -Infinity;
 
   for (const side of sides) {
-    const rect = panelRect(focusedPin.x, focusedPin.y, side);
+    const rect = panelRect(focusedPin.x, focusedPin.y, side, panelW, panelH);
     if (!isFullyInside(rect, mapW, mapH)) continue;
 
     const score = scorePlacement(
@@ -231,14 +251,14 @@ function choosePlacement(
 
   const anchorX = Math.min(
     focusedPin.x + PIN_EDGE_OFFSET,
-    mapW - PANEL_EST_WIDTH - EDGE_PADDING
+    mapW - panelW - EDGE_PADDING
   );
 
   return {
-    left: Math.max(EDGE_PADDING + PANEL_EST_WIDTH, anchorX),
+    left: Math.max(EDGE_PADDING + panelW, anchorX),
     top: Math.max(
-      EDGE_PADDING + PANEL_EST_HEIGHT / 2,
-      Math.min(focusedPin.y, mapH - EDGE_PADDING - PANEL_EST_HEIGHT / 2)
+      EDGE_PADDING + panelH / 2,
+      Math.min(focusedPin.y, mapH - EDGE_PADDING - panelH / 2)
     ),
     transform: "translate(0, -50%)",
   };
@@ -285,13 +305,18 @@ export function MapFocusPanel() {
           return { x: p.x, y: p.y };
         });
 
+      const panelW = isTablet ? 224 : PANEL_EST_WIDTH; // 14rem
+      const panelH = isTablet ? 96 : PANEL_EST_HEIGHT;
+      
       return choosePlacement(
         { x: focusedPin.x, y: focusedPin.y },
         otherPins,
         mapW,
-        mapH
-      );
-    }
+        mapH,
+        panelW,
+        panelH
+    );
+      }
 
     function lockPlacement() {
       if (placementCacheRef.current?.id === focusedMedia!.id) return;
@@ -339,8 +364,9 @@ export function MapFocusPanel() {
     };
 
     
-  }, [map, focusedMedia, collectionLocations]);
+}, [map, focusedMedia, collectionLocations, isTablet]);
 
+  
   if (!map || !focusedMedia || !placement) return null;
 
   const mapContainer = map.getContainer();
