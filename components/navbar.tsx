@@ -25,7 +25,7 @@ export default function Navbar({ title }: { title: string }) {
       <div className="flex flex-col justify-center items-center gap-2 p-2 md:flex-row md:justify-between md:p-4">
         <div className="flex items-center gap-3">
          <Link href="/" className="flex items-center gap-2 shrink-0">
-  <span className="relative block h-7 w-56">
+  <span className="relative block h-9 w-72">
     <Image
       src="/header-logo.png"
       alt={title}
