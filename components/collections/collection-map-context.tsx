@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import type { MediaLocation } from "@/lib/airtable/types";
+import { useIsTablet } from "@/components/hooks/use-tablet";
 
 const FOCUS_FLY_ZOOM = 4;
 
@@ -41,30 +42,40 @@ export function CollectionMapProvider({
   const focusedMediaRef = useRef<MediaLocation | null>(null);
   const programmaticFlyRef = useRef(false);
   focusedMediaRef.current = focusedMedia;
+  const isTablet = useIsTablet();
 
   const registerMap = useCallback((mapInstance: mapboxgl.Map | null) => {
     mapRef.current = mapInstance;
     setMap(mapInstance);
   }, []);
 
-   const focusOnMedia = useCallback((media: MediaLocation) => {
-    setFocusedMedia(media);
-    const mapInstance = mapRef.current;
-    if (!mapInstance) return;
+ const focusOnMedia = useCallback((media: MediaLocation) => {
+  setFocusedMedia(media);
+  const mapInstance = mapRef.current;
+  if (!mapInstance) return;
 
-    const reduced = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
-    const duration = reduced ? 0 : 1300;
+  const reduced = window.matchMedia(
+    "(prefers-reduced-motion: reduce)"
+  ).matches;
+  const duration = reduced ? 0 : 1300;
 
-    programmaticFlyRef.current = true;
+  programmaticFlyRef.current = true;
 
-    mapInstance.flyTo({
-      center: [media.longitude, media.latitude],
-      zoom: FOCUS_FLY_ZOOM,
-      duration,
-    });
-  }, []);
+  const containerHeight = mapInstance.getContainer().clientHeight;
+  const bottomPadding = isTablet ? Math.round(containerHeight * 0.6) : 0;
+
+  mapInstance.flyTo({
+    center: [media.longitude, media.latitude],
+    zoom: FOCUS_FLY_ZOOM,
+    duration,
+    padding: {
+      top: 0,
+      bottom: bottomPadding,
+      left: 0,
+      right: 0,
+    },
+  });
+}, [isTablet]);
   
   const clearFocus = useCallback(() => {
     setFocusedMedia(null);
