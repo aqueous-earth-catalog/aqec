@@ -31,7 +31,8 @@ export default function Navbar({ title }: { title: string }) {
       alt={title}
       fill
       priority
-      sizes="224px"
+      sizes="320px"
+      quality={100}
       className="object-contain object-left"
     />
   </span>
