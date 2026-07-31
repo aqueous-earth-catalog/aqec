@@ -6,6 +6,8 @@ import mapboxgl, { LngLatBoundsLike } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { MapFilters, MediaLocation } from "@/lib/airtable/types";
 import { addQueryParameter, hasActiveFilters } from "@/lib/utils";
+import { useIsTablet } from "@/components/hooks/use-tablet";
+
 import {
   addDataLayer,
   DEFAULT_ZOOM,
@@ -52,6 +54,7 @@ export function Map({
   const onPointClickRef = useRef(onPointClick);
   onPointClickRef.current = onPointClick;
   const prevSelectedIdRef = useRef<string | null>(null);
+  const isTablet = useIsTablet();
 
   const selectedMediaPoint = mediaPointId
     ? data.find((point) => point.id === mediaPointId)
@@ -156,14 +159,23 @@ export function Map({
 
     if (!selectedMediaPoint) return;
 
-    map.current.flyTo({
-      center: [
-        selectedMediaPoint.longitude,
-        selectedMediaPoint.latitude,
-      ],
-      zoom: DEFAULT_ZOOM,
-    });
-  }, [isMapLoaded, selectedMediaPoint, onPointClick]);
+  const containerHeight = map.current.getContainer().clientHeight;
+  const bottomPadding = isTablet ? Math.round(containerHeight * 0.6) : 0;
+
+  map.current.flyTo({
+    center: [
+      selectedMediaPoint.longitude,
+      selectedMediaPoint.latitude,
+    ],
+    zoom: DEFAULT_ZOOM,
+    padding: {
+      top: 0,
+      bottom: bottomPadding,
+      left: 0,
+      right: 0,
+    },
+  });
+}, [isMapLoaded, selectedMediaPoint, onPointClick, isTablet]);
   
   useEffect(() => {
     if (
