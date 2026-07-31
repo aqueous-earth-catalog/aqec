@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { ModeToggle } from "@/components/theme/mode-toggle";
 import InstructionsDialog from "@/components/instructions-dialog";
 import { cn } from "@/lib/utils";
+
 
 const BASE_CLASSNAMES =
   "text-sm font-medium transition-colors px-3 py-2 rounded-md";
@@ -22,9 +24,18 @@ export default function Navbar({ title }: { title: string }) {
     >
       <div className="flex flex-col justify-center items-center gap-2 p-2 md:flex-row md:justify-between md:p-4">
         <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-2 shrink-0">
-            <span className="text-xl font-medium">{title}</span>
-          </Link>
+         <Link href="/" className="flex items-center gap-2 shrink-0">
+  <span className="relative block h-7 w-56">
+    <Image
+      src="/header-logo.png"
+      alt={title}
+      fill
+      priority
+      sizes="224px"
+      className="object-contain object-left"
+    />
+  </span>
+</Link>
         </div>
         <nav role="navigation" aria-label="Main navigation">
           <ul className="flex items-center gap-2">
