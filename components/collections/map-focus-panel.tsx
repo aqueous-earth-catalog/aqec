@@ -310,29 +310,11 @@ export function MapFocusPanel() {
       setPlacement(next);
     }
 
-    function pinOnScreen(): boolean {
-      const container = map!.getContainer();
-      const p = map!.project([
-        focusedMedia!.longitude,
-        focusedMedia!.latitude,
-      ]);
-      return (
-        p.x >= 0 &&
-        p.x <= container.clientWidth &&
-        p.y >= 0 &&
-        p.y <= container.clientHeight
-      );
-    }
+let fallback: number | undefined;
 
-    let fallback: number | undefined;
-    
-    if (pinOnScreen()) {
-      lockPlacement();
-    } else {
-      setPlacement(null);
-      map.once("moveend", lockPlacement);
-      fallback = window.setTimeout(lockPlacement, 1400);
-    }
+setPlacement(null);
+map.once("moveend", lockPlacement);
+fallback = window.setTimeout(lockPlacement, 1400);
 
     function onResize() {
       if (!focusedMedia) return;
