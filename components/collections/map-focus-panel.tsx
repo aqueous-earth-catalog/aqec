@@ -121,22 +121,6 @@ function panelRect(
   return { left: pinX - w / 2, top, right: pinX + w / 2, bottom: top + h };
 }
 
-  if (side === "left") {
-    const right = pinX - PIN_EDGE_OFFSET;
-    return { left: right - w, top: pinY - h / 2, right, bottom: pinY + h / 2 };
-  }
-  if (side === "right") {
-    const left = pinX + PIN_EDGE_OFFSET;
-    return { left, top: pinY - h / 2, right: left + w, bottom: pinY + h / 2 };
-  }
-  if (side === "above") {
-    const bottom = pinY - PIN_EDGE_OFFSET;
-    return { left: pinX - w / 2, top: bottom - h, right: pinX + w / 2, bottom };
-  }
-  const top = pinY + PIN_EDGE_OFFSET;
-  return { left: pinX - w / 2, top, right: pinX + w / 2, bottom: top + h };
-}
-
 function pinNearRect(
   px: number,
   py: number,
