@@ -12,7 +12,7 @@ import { Label } from "./ui/label";
 
 interface LocationDetailsProps {
   selectedMediaPoint: MediaLocation;
-  mediaPoints: MediaLocation[];
+  mediaPoints: MediaLocation[];fse
 }
 
 /**
@@ -76,21 +76,21 @@ export function LocationDetails({
             )}
           </div>
 
-          {selectedMediaPoint?.media?.image?.url && (
-            <div className="relative w-full h-[24vh] min-h-[160px] max-h-[320px] overflow-hidden rounded bg-muted">
-              <Image
-                src={selectedMediaPoint.media.image.url || ""}
-                alt={`Image from ${
-                  selectedMediaPoint.media.name || "unknown media"
-                } (${
-                  selectedMediaPoint.media.release_year || "unknown year"
-                }) by ${selectedMediaPoint.media.director || "unknown director"}`}
-                fill
-                sizes="(min-width: 1024px) 384px, 100vw"
-                className="object-contain object-center"
-              />
-            </div>
-          )}
+     {selectedMediaPoint?.media?.image?.url && (
+  <div className="relative -mx-4 w-[calc(100%+2rem)] h-[24vh] min-h-[160px] max-h-[320px] overflow-hidden bg-muted">
+    <Image
+      src={selectedMediaPoint.media.image.url || ""}
+      alt={`Image from ${
+        selectedMediaPoint.media.name || "unknown media"
+      } (${
+        selectedMediaPoint.media.release_year || "unknown year"
+      }) by ${selectedMediaPoint.media.director || "unknown director"}`}
+      fill
+      sizes="(min-width: 1024px) 50vw, 100vw"
+      className="object-cover object-center"
+    />
+  </div>
+)}
         </CardHeader>
         <CardContent className="p-0 mt-3">
           <Metric
