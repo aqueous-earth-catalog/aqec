@@ -76,8 +76,8 @@ export function LocationDetails({
             )}
           </div>
 
-     {selectedMediaPoint?.media?.image?.url && (
-  <div className="relative -mx-4 w-[calc(100%+2rem)] h-[24vh] min-h-[160px] max-h-[320px] overflow-hidden bg-muted">
+{selectedMediaPoint?.media?.image?.url && (
+  <div className="-mx-4 w-[calc(100%+2rem)] overflow-hidden bg-muted">
     <Image
       src={selectedMediaPoint.media.image.url || ""}
       alt={`Image from ${
@@ -85,9 +85,10 @@ export function LocationDetails({
       } (${
         selectedMediaPoint.media.release_year || "unknown year"
       }) by ${selectedMediaPoint.media.director || "unknown director"}`}
-      fill
+      width={selectedMediaPoint.media.image.width || 1600}
+      height={selectedMediaPoint.media.image.height || 900}
       sizes="(min-width: 1024px) 50vw, 100vw"
-      className="object-cover object-center"
+      className="w-full h-auto"
     />
   </div>
 )}
