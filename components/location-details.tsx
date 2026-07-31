@@ -12,7 +12,7 @@ import { Label } from "./ui/label";
 
 interface LocationDetailsProps {
   selectedMediaPoint: MediaLocation;
-  mediaPoints: MediaLocation[];fse
+  mediaPoints: MediaLocation[];
 }
 
 /**
