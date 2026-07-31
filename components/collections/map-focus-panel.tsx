@@ -289,7 +289,7 @@ export function MapFocusPanel() {
           return { x: p.x, y: p.y };
         });
 
-      const panelW = isTablet ? 224 : PANEL_EST_WIDTH; // 14rem
+      const panelW = isTablet ? 176 : PANEL_EST_WIDTH; // ~11rem
       const panelH = isTablet ? 96 : PANEL_EST_HEIGHT;
       
       return choosePlacement(
@@ -356,9 +356,9 @@ export function MapFocusPanel() {
 
   const mapContainer = map.getContainer();
 
-    const panelWidthClass = isTablet
-    ? "w-[min(14rem,calc(100%-1.5rem))]"
-    : "w-[min(18rem,calc(100%-1.5rem))]";
+   const panelWidthClass = isTablet
+  ? "w-max max-w-[min(11rem,calc(100%-1.5rem))]"
+  : "w-[min(18rem,calc(100%-1.5rem))]";
   const panelMaxHeightClass = isTablet
     ? "max-h-[min(28vh,220px)]"
     : "max-h-[min(40vh,320px)]";
