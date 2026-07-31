@@ -18,6 +18,8 @@ const EDGE_PADDING = 12;
 const PIN_RADIUS = 12;
 const PANEL_GAP = 16;
 const PIN_EDGE_OFFSET = PIN_RADIUS + PANEL_GAP;
+/** Matches CollectionsDrawer mobile height `h-[60%]`. */
+const MOBILE_DRAWER_FRACTION = 0.6;
 
 function buildPlace(media: MediaLocation): string {
   return [media.city, media.region, media.country].filter(Boolean).join(", ");
@@ -179,14 +181,17 @@ function choosePlacement(
   mapW: number,
   mapH: number,
   panelW: number,
-  panelH: number
+  panelH: number,
+  isMobile: boolean
 ): PanelPlacement {
-  const sides: Array<"left" | "right" | "above" | "below"> = [
-    "right",
-    "below",
-    "above",
-    "left",
-  ];
+  // On mobile, only the top portion of the map is visible above the text sheet.
+  const usableH = isMobile
+    ? mapH * (1 - MOBILE_DRAWER_FRACTION)
+    : mapH;
+
+  const sides: Array<"left" | "right" | "above" | "below"> = isMobile
+    ? ["above", "right", "left"]
+    : ["right", "below", "above", "left"];
 
   const transforms: Record<string, string> = {
     left: "translate(-100%, -50%)",
@@ -200,12 +205,12 @@ function choosePlacement(
 
   for (const side of sides) {
     const rect = panelRect(focusedPin.x, focusedPin.y, side, panelW, panelH);
-    if (!isFullyInside(rect, mapW, mapH)) continue;
+    if (!isFullyInside(rect, mapW, usableH)) continue;
 
     const score = scorePlacement(
       rect,
       mapW,
-      mapH,
+      usableH,
       otherPins,
       side,
       focusedPin.x
@@ -230,19 +235,19 @@ function choosePlacement(
     }
   }
 
-  // Fallback: right of pin, vertically centered
   if (best) return best;
 
+  // Fallback: keep the bubble in the visible band, near the pin
   const anchorX = Math.min(
     focusedPin.x + PIN_EDGE_OFFSET,
     mapW - panelW - EDGE_PADDING
   );
 
   return {
-    left: Math.max(EDGE_PADDING + panelW, anchorX),
+    left: Math.max(EDGE_PADDING, Math.min(anchorX, mapW - panelW - EDGE_PADDING)),
     top: Math.max(
       EDGE_PADDING + panelH / 2,
-      Math.min(focusedPin.y, mapH - EDGE_PADDING - panelH / 2)
+      Math.min(focusedPin.y, usableH - EDGE_PADDING - panelH / 2)
     ),
     transform: "translate(0, -50%)",
   };
@@ -262,11 +267,6 @@ export function MapFocusPanel() {
     if (!map || !focusedMedia) {
       placementCacheRef.current = null;
       setPlacement(null);
-      return;
-    }
-
-    if (placementCacheRef.current?.id === focusedMedia.id) {
-      setPlacement(placementCacheRef.current.placement);
       return;
     }
 
@@ -299,6 +299,7 @@ export function MapFocusPanel() {
         mapH,
         panelW,
         panelH
+        isTablet
     );
       }
 
@@ -364,7 +365,7 @@ export function MapFocusPanel() {
 
   return createPortal(
     <div
-      className={`absolute z-20 ${panelWidthClass} ${panelMaxHeightClass} overflow-y-auto rounded-xl border border-border/60 bg-background/70 backdrop-blur-sm shadow-lg pointer-events-auto`}
+      className={`absolute ${isTablet ? "z-[5]" : "z-20"} ${panelWidthClass} ${panelMaxHeightClass} overflow-y-auto rounded-xl border border-border/60 bg-background/70 backdrop-blur-sm shadow-lg pointer-events-auto`}
       style={{
         left: placement.left,
         top: placement.top,
