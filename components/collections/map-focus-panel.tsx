@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useCollectionMap } from "@/components/collections/collection-map-context";
 import Link from "next/link";
+import { useIsTablet } from "@/components/hooks/use-tablet";
 
 const HEADLINE_CLASS = "font-medium text-sm leading-snug";
 const PANEL_EST_WIDTH = 288;
@@ -39,13 +40,28 @@ function locationLine(media: MediaLocation): string {
 
 interface MediaEntryPanelProps {
   media: MediaLocation;
+  compact?: boolean;
 }
 
-function MediaEntryPanel({ media }: MediaEntryPanelProps) {
+function MediaEntryPanel({ media, compact = false }: MediaEntryPanelProps) {
   const place = locationLine(media);
   const filmTitle = media.media?.name;
   const year = media.media?.release_year;
   const director = media.media?.director;
+
+  if (compact) {
+    return (
+      <div className="space-y-1">
+        {place && <p className="font-medium text-xs leading-snug">{place}</p>}
+        {filmTitle && (
+          <p className="font-medium text-xs leading-snug">
+            {filmTitle}
+            {year ? ` (${year})` : ""}
+          </p>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-2">
@@ -61,7 +77,7 @@ function MediaEntryPanel({ media }: MediaEntryPanelProps) {
           {year ? ` (${year})` : ""}
         </p>
       )}
-    {director && (
+      {director && (
         <p className="text-xs text-muted-foreground">Created by {director}</p>
       )}
       <Link
@@ -73,7 +89,6 @@ function MediaEntryPanel({ media }: MediaEntryPanelProps) {
     </div>
   );
 }
-
 type PanelPlacement = {
   left: number;
   top: number;
@@ -232,6 +247,7 @@ function choosePlacement(
 export function MapFocusPanel() {
   const { focusedMedia, collectionLocations, map, clearFocus } =
     useCollectionMap();
+  const isTablet = useIsTablet();
   const [placement, setPlacement] = useState<PanelPlacement | null>(null);
     const placementCacheRef = useRef<{
     id: string;
@@ -329,9 +345,16 @@ export function MapFocusPanel() {
 
   const mapContainer = map.getContainer();
 
+    const panelWidthClass = isTablet
+    ? "w-[min(14rem,calc(100%-1.5rem))]"
+    : "w-[min(18rem,calc(100%-1.5rem))]";
+  const panelMaxHeightClass = isTablet
+    ? "max-h-[min(28vh,220px)]"
+    : "max-h-[min(40vh,320px)]";
+
   return createPortal(
     <div
-     className="absolute z-20 w-[min(18rem,calc(100%-1.5rem))] max-h-[min(40vh,320px)] overflow-y-auto rounded-xl border border-border/60 bg-background/70 backdrop-blur-sm shadow-lg pointer-events-auto"
+      className={`absolute z-20 ${panelWidthClass} ${panelMaxHeightClass} overflow-y-auto rounded-xl border border-border/60 bg-background/70 backdrop-blur-sm shadow-lg pointer-events-auto`}
       style={{
         left: placement.left,
         top: placement.top,
@@ -340,7 +363,11 @@ export function MapFocusPanel() {
       role="dialog"
       aria-label="Catalog entry"
     >
-      <div className="flex items-center justify-between gap-2 px-3 py-1 border-b min-h-0">
+      <div
+        className={`flex items-center justify-between gap-2 border-b min-h-0 ${
+          isTablet ? "px-2 py-0.5" : "px-3 py-1"
+        }`}
+      >
         <span className="text-xs font-medium text-muted-foreground leading-none">
           In this collection
         </span>
@@ -354,8 +381,8 @@ export function MapFocusPanel() {
           <X className="h-3.5 w-3.5" />
         </Button>
       </div>
-      <div className="p-3">
-        <MediaEntryPanel media={focusedMedia} />
+      <div className={isTablet ? "p-2" : "p-3"}>
+        <MediaEntryPanel media={focusedMedia} compact={isTablet} />
       </div>
     </div>,
     mapContainer
