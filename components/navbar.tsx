@@ -12,7 +12,7 @@ const BASE_CLASSNAMES =
   "text-sm font-medium transition-colors px-3 py-2 rounded-md";
 const INACTIVE_CLASSNAMES =
   "text-muted-foreground hover:text-foreground hover:bg-muted";
-const ACTIVE_CLASSNAMES = "bg-primary text-primary-foreground";f
+const ACTIVE_CLASSNAMES = "bg-primary text-primary-foreground";
 
 export default function Navbar({ title }: { title: string }) {
   const pathname = usePathname();
