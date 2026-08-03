@@ -11,8 +11,8 @@ export default async function Home() {
   ]);
 
   return (
-    <div className="w-full h-full relative">
-      <h1 className="sr-only">Media Mapper - Interactive Map View</h1>
+<div className="w-full h-full min-h-0 relative overflow-hidden">
+  <h1 className="sr-only">Media Mapper - Interactive Map View</h1>
       <MapContainer mediaPoints={mediaPoints} />
       {metadata.getting_started_dialog_enabled && metadata.getting_started_dialog_content && (
         <WelcomeDialog
