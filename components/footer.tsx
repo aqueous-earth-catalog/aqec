@@ -1,8 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
 import { Github } from "lucide-react";
-import UPennLogo from "@/public/upenn_logo.png";
-import CargcLogo from "@/public/upenn_cargc_logo.png";
 
 export default function Footer({ owner }: { owner: string }) {
 return (
@@ -11,50 +8,28 @@ return (
     role="contentinfo"
   >
     <div className="grid grid-cols-3 items-center gap-2 px-3 py-1.5">
-      {/* Left: funded + logos */}
-      <div className="flex flex-col items-start gap-0.5 justify-self-start">
-        <span className="text-xs text-muted-foreground font-medium">
-          Funded by the{" "}
-          <Link
-            href="https://www.upenn.edu/"
-            className="text-primary underline"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            University of Pennsylvania
-          </Link>
-        </span>
-        <div className="flex flex-row items-center gap-2">
-          <Link
-            href="https://www.asc.upenn.edu/research/centers/center-for-advanced-research-in-global-communication"
-            className="relative shrink-0 w-[72px] h-10"
-            title="Center for Advanced Research in Global Communication"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              src={CargcLogo}
-              alt="University of Pennsylvania Center for Advanced Research in Global Communication"
-              fill
-              className="object-contain"
-            />
-          </Link>
-          <Link
-            href="https://www.upenn.edu/"
-            className="relative shrink-0 w-[90px] h-10"
-            title="University of Pennsylvania"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              src={UPennLogo}
-              alt="University of Pennsylvania official logo - link to Penn's website"
-              fill
-              className="object-contain"
-            />
-          </Link>
-        </div>
-      </div>
+{/* Left: funded by */}
+<div className="flex flex-col items-start gap-0 justify-self-start">
+  <span className="text-xs text-muted-foreground font-medium">
+    Funded by the{" "}
+    <Link
+      href="https://www.upenn.edu/"
+      className="text-primary underline"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      University of Pennsylvania&apos;s
+    </Link>
+  </span>
+  <Link
+    href="https://www.asc.upenn.edu/research/centers/center-for-advanced-research-in-global-communication"
+    className="text-xs text-primary underline font-medium"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    Center for Advanced Research in Global Communication
+  </Link>
+</div>
 
       {/* Center: copyright */}
       <div className="justify-self-center text-center">
