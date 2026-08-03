@@ -126,13 +126,12 @@ export default function InstructionsDialog() {
 <Button
   ref={triggerRef}
   variant="ghost"
-  size="sm"
-  className="h-auto px-1.5 py-1 text-xs font-medium text-muted-foreground hover:text-foreground md:px-3 md:py-2 md:text-sm"
+  className="h-auto px-1.5 py-1 text-xs font-medium leading-none inline-flex items-center gap-1 text-muted-foreground hover:text-foreground md:px-3 md:py-2 md:text-sm"
   aria-expanded={open}
   aria-controls="instructions-dialog"
   aria-label={open ? "Close instructions" : "Open instructions"}
 >
-  <HelpCircle className="h-3 w-3 md:h-4 md:w-4" />
+  <HelpCircle className="h-3 w-3 shrink-0 md:h-4 md:w-4" />
   Help
 </Button>
       </DialogTrigger>
