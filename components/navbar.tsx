@@ -90,10 +90,10 @@ export default function Navbar({ title }: { title: string }) {
                 About
               </Link>
             </li>
-            <li>
-              <InstructionsDialog />
-            </li>
-<li className="ml-1 md:ml-4">
+<li className="flex items-center">
+  <InstructionsDialog />
+</li>
+<li className="ml-1 flex items-center md:ml-4">
   <ModeToggle />
 </li>
           </ul>
