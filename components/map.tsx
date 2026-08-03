@@ -18,6 +18,18 @@ mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
 /** Globe size for full-catalog view. Higher = globe looks larger. */
 const MAP_CATALOG_ZOOM = 2.5;
 
+/** Below this zoom: globe. At/above: flat map (no black circular mask). */
+const GLOBE_TO_MERCATOR_ZOOM = 4;
+
+function applyProjectionForZoom(mapInstance: mapboxgl.Map) {
+  if (mapInstance.getZoom() >= GLOBE_TO_MERCATOR_ZOOM) {
+    mapInstance.setProjection("mercator");
+    mapInstance.setFog(null);
+  } else {
+    mapInstance.setProjection("globe");
+  }
+}
+
 interface MapProps {
   data: MediaLocation[];
   bounds: LngLatBoundsLike | undefined;
@@ -75,23 +87,33 @@ export function Map({
 
     map.current.addControl(new mapboxgl.NavigationControl(), "top-right");
 
-    map.current.on("load", () => {
-      setIsMapLoaded(true);
-      if (map.current) onMapReady?.(map.current);
-    });
+const onZoom = () => {
+  if (map.current) applyProjectionForZoom(map.current);
+};
 
-    const container = mapContainer.current;
-    const cleanupKeyboard = container
-      ? setupKeyboardNav(container, map.current)
-      : undefined;
+map.current.on("load", () => {
+  if (map.current) {
+    applyProjectionForZoom(map.current);
+    onMapReady?.(map.current);
+  }
+  setIsMapLoaded(true);
+});
 
-    return () => {
-      cleanupKeyboard?.();
-      if (map.current) {
-        map.current.remove();
-        map.current = null;
-      }
-    };
+map.current.on("zoom", onZoom);
+
+const container = mapContainer.current;
+const cleanupKeyboard = container
+  ? setupKeyboardNav(container, map.current)
+  : undefined;
+
+return () => {
+  cleanupKeyboard?.();
+  if (map.current) {
+    map.current.off("zoom", onZoom);
+    map.current.remove();
+    map.current = null;
+  }
+};
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -102,18 +124,19 @@ export function Map({
       return;
     prevStyleRef.current = styleUrl;
     map.current.setStyle(styleUrl);
-    map.current.once("style.load", () => {
-      if (map.current) {
-        addDataLayer(
-          map.current,
-          data,
-          effectiveSelected,
-          onPointClick
-            ? { onPointClick: (point) => onPointClickRef.current?.(point) }
-            : undefined
-        );
-      }
-    });
+map.current.once("style.load", () => {
+  if (map.current) {
+    applyProjectionForZoom(map.current);
+    addDataLayer(
+      map.current,
+      data,
+      effectiveSelected,
+      onPointClick
+        ? { onPointClick: (point) => onPointClickRef.current?.(point) }
+        : undefined
+    );
+  }
+});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [styleUrl, isMapLoaded]);
 
