@@ -6,10 +6,10 @@ import CargcLogo from "@/public/upenn_cargc_logo.png";
 
 export default function Footer({ owner }: { owner: string }) {
   return (
-    <footer
-      className="w-full bg-background border-t border-border"
-      role="contentinfo"
-    >
+<footer
+  className="hidden lg:block w-full bg-background border-t border-border"
+  role="contentinfo"
+>
       <div className="flex flex-col p-4 md:flex-row md:justify-between">
         <div className="flex flex-col items-center md:items-start">
           <span className="text-sm text-muted-foreground font-medium">
