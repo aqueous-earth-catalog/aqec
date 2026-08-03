@@ -147,7 +147,8 @@ return () => {
     map.current.setStyle(styleUrl);
 map.current.once("style.load", () => {
   if (map.current) {
-    applyProjectionForZoom(map.current);
+projectionModeRef.current = null;
+applyProjectionForZoom(map.current, projectionModeRef);
     addDataLayer(
       map.current,
       data,
