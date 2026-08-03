@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 
 
 const BASE_CLASSNAMES =
-  "text-xs font-medium transition-colors px-1.5 py-1 rounded-md md:text-sm md:px-3 md:py-2";
+  "inline-flex items-center text-xs font-medium leading-none transition-colors px-1.5 py-1 rounded-md md:text-sm md:px-3 md:py-2";
 const INACTIVE_CLASSNAMES =
   "text-muted-foreground hover:text-foreground hover:bg-muted";
 const ACTIVE_CLASSNAMES = "bg-primary text-primary-foreground";
