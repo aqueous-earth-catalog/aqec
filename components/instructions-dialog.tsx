@@ -126,7 +126,7 @@ export default function InstructionsDialog() {
   <button
     ref={triggerRef}
     type="button"
-className="inline-flex items-center h-6 translate-y-[2px] gap-1 px-1.5 text-xs font-medium leading-none rounded-md transition-colors text-muted-foreground hover:text-foreground hover:bg-muted md:h-8 md:translate-y-0 md:gap-1.5 md:px-3 md:text-sm"
+className="inline-flex items-center h-6 translate-y-[1px] gap-1 px-1.5 text-xs font-medium leading-none rounded-md transition-colors text-muted-foreground hover:text-foreground hover:bg-muted md:h-8 md:translate-y-0 md:gap-1.5 md:px-3 md:text-sm"
     aria-expanded={open}
     aria-controls="instructions-dialog"
     aria-label={open ? "Close instructions" : "Open instructions"}
