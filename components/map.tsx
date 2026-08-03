@@ -29,8 +29,11 @@ function getProjectionMode(zoom: number): MapProjectionMode {
 
 function applyProjectionForZoom(
   mapInstance: mapboxgl.Map,
-  lastModeRef: { current: MapProjectionMode | null }
+  lastModeRef: { current: MapProjectionMode | null },
+  isMobile: boolean
 ) {
+  if (!isMobile) return;
+
   const nextMode = getProjectionMode(mapInstance.getZoom());
   if (lastModeRef.current === nextMode) return;
   lastModeRef.current = nextMode;
@@ -86,8 +89,10 @@ export function Map({
   const onPointClickRef = useRef(onPointClick);
   onPointClickRef.current = onPointClick;
   const prevSelectedIdRef = useRef<string | null>(null);
-  const isTablet = useIsTablet();
-  const projectionModeRef = useRef<MapProjectionMode | null>(null);
+ const isTablet = useIsTablet();
+const isTabletRef = useRef(isTablet);
+isTabletRef.current = isTablet;
+const projectionModeRef = useRef<MapProjectionMode | null>(null);
 
   const selectedMediaPoint = mediaPointId
     ? data.find((point) => point.id === mediaPointId)
@@ -109,12 +114,22 @@ export function Map({
     map.current.addControl(new mapboxgl.NavigationControl(), "top-right");
 
 const onZoomEnd = () => {
-  if (map.current) applyProjectionForZoom(map.current, projectionModeRef);
+  if (map.current) {
+    applyProjectionForZoom(
+      map.current,
+      projectionModeRef,
+      isTabletRef.current
+    );
+  }
 };
 
 map.current.on("load", () => {
   if (map.current) {
-    applyProjectionForZoom(map.current, projectionModeRef);
+    applyProjectionForZoom(
+  map.current,
+  projectionModeRef,
+  isTabletRef.current
+);
     onMapReady?.(map.current);
   }
   setIsMapLoaded(true);
@@ -148,7 +163,11 @@ return () => {
 map.current.once("style.load", () => {
   if (map.current) {
 projectionModeRef.current = null;
-applyProjectionForZoom(map.current, projectionModeRef);
+applyProjectionForZoom(
+  map.current,
+  projectionModeRef,
+  isTabletRef.current
+);
     addDataLayer(
       map.current,
       data,
