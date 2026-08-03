@@ -21,8 +21,21 @@ const MAP_CATALOG_ZOOM = 2.5;
 /** Below this zoom: globe. At/above: flat map (no black circular mask). */
 const GLOBE_TO_MERCATOR_ZOOM = 4;
 
-function applyProjectionForZoom(mapInstance: mapboxgl.Map) {
-  if (mapInstance.getZoom() >= GLOBE_TO_MERCATOR_ZOOM) {
+type MapProjectionMode = "globe" | "mercator";
+
+function getProjectionMode(zoom: number): MapProjectionMode {
+  return zoom >= GLOBE_TO_MERCATOR_ZOOM ? "mercator" : "globe";
+}
+
+function applyProjectionForZoom(
+  mapInstance: mapboxgl.Map,
+  lastModeRef: { current: MapProjectionMode | null }
+) {
+  const nextMode = getProjectionMode(mapInstance.getZoom());
+  if (lastModeRef.current === nextMode) return;
+  lastModeRef.current = nextMode;
+
+  if (nextMode === "mercator") {
     mapInstance.setProjection("mercator");
   } else {
     mapInstance.setPadding({ top: 0, bottom: 0, left: 0, right: 0 });
@@ -74,6 +87,7 @@ export function Map({
   onPointClickRef.current = onPointClick;
   const prevSelectedIdRef = useRef<string | null>(null);
   const isTablet = useIsTablet();
+  const projectionModeRef = useRef<MapProjectionMode | null>(null);
 
   const selectedMediaPoint = mediaPointId
     ? data.find((point) => point.id === mediaPointId)
@@ -94,19 +108,19 @@ export function Map({
 
     map.current.addControl(new mapboxgl.NavigationControl(), "top-right");
 
-const onZoom = () => {
-  if (map.current) applyProjectionForZoom(map.current);
+const onZoomEnd = () => {
+  if (map.current) applyProjectionForZoom(map.current, projectionModeRef);
 };
 
 map.current.on("load", () => {
   if (map.current) {
-    applyProjectionForZoom(map.current);
+    applyProjectionForZoom(map.current, projectionModeRef);
     onMapReady?.(map.current);
   }
   setIsMapLoaded(true);
 });
 
-map.current.on("zoom", onZoom);
+map.current.on("zoomend", onZoomEnd);
 
 const container = mapContainer.current;
 const cleanupKeyboard = container
@@ -116,7 +130,7 @@ const cleanupKeyboard = container
 return () => {
   cleanupKeyboard?.();
   if (map.current) {
-    map.current.off("zoom", onZoom);
+    map.current.off("zoomend", onZoomEnd);
     map.current.remove();
     map.current = null;
   }
