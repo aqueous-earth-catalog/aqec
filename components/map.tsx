@@ -24,9 +24,15 @@ const GLOBE_TO_MERCATOR_ZOOM = 4;
 function applyProjectionForZoom(mapInstance: mapboxgl.Map) {
   if (mapInstance.getZoom() >= GLOBE_TO_MERCATOR_ZOOM) {
     mapInstance.setProjection("mercator");
-    mapInstance.setFog(null);
   } else {
     mapInstance.setProjection("globe");
+    mapInstance.setFog({
+      color: "rgb(186, 210, 235)",
+      "high-color": "rgb(36, 92, 223)",
+      "horizon-blend": 0.02,
+      "space-color": "rgb(11, 11, 25)",
+      "star-intensity": 0.6,
+    });
   }
 }
 
