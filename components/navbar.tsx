@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 
 
 const BASE_CLASSNAMES =
-  "text-sm font-medium transition-colors px-3 py-2 rounded-md";
+  "text-xs font-medium transition-colors px-1.5 py-1 rounded-md md:text-sm md:px-3 md:py-2";
 const INACTIVE_CLASSNAMES =
   "text-muted-foreground hover:text-foreground hover:bg-muted";
 const ACTIVE_CLASSNAMES = "bg-primary text-primary-foreground";
@@ -39,7 +39,7 @@ export default function Navbar({ title }: { title: string }) {
 </Link>
         </div>
         <nav role="navigation" aria-label="Main navigation">
-<ul className="flex flex-wrap items-center justify-center gap-1 sm:gap-2 max-w-full">
+<ul className="flex flex-nowrap items-center justify-center gap-0.5 md:gap-2 max-w-full">
           <li>
               <Link
                 href="/"
@@ -93,9 +93,9 @@ export default function Navbar({ title }: { title: string }) {
             <li>
               <InstructionsDialog />
             </li>
-            <li className="ml-4">
-              <ModeToggle />
-            </li>
+<li className="ml-1 md:ml-4">
+  <ModeToggle />
+</li>
           </ul>
         </nav>
       </div>
