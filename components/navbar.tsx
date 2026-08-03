@@ -12,7 +12,7 @@ const BASE_CLASSNAMES =
   "text-sm font-medium transition-colors px-3 py-2 rounded-md";
 const INACTIVE_CLASSNAMES =
   "text-muted-foreground hover:text-foreground hover:bg-muted";
-const ACTIVE_CLASSNAMES = "bg-primary text-primary-foreground";
+const ACTIVE_CLASSNAMES = "bg-primary text-primary-foreground";f
 
 export default function Navbar({ title }: { title: string }) {
   const pathname = usePathname();
@@ -25,8 +25,8 @@ export default function Navbar({ title }: { title: string }) {
       <div className="flex flex-col justify-center items-center gap-2 p-2 md:flex-row md:justify-between md:p-4">
         <div className="flex items-center gap-3">
          <Link href="/" className="flex items-center gap-2 shrink-0">
-  <span className="relative block h-10 w-80">
-    <Image
+<span className="relative block h-8 w-[min(16rem,70vw)] md:h-10 md:w-80">
+           <Image
       src="/header-logo.png"
       alt={title}
       fill
@@ -39,8 +39,8 @@ export default function Navbar({ title }: { title: string }) {
 </Link>
         </div>
         <nav role="navigation" aria-label="Main navigation">
-          <ul className="flex items-center gap-2">
-            <li>
+<ul className="flex flex-wrap items-center justify-center gap-1 sm:gap-2 max-w-full">
+          <li>
               <Link
                 href="/"
                 className={cn(
