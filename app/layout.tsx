@@ -54,8 +54,8 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
-      >
+  className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col h-dvh overflow-x-hidden`}
+>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -69,8 +69,8 @@ export default async function RootLayout({
             Skip to main content
           </a>
           <Navbar title={metadata.title} />
-          <main id="main-content" role="main" className='flex-1'>
-            {children}
+<main id="main-content" role="main" className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+          {children}
           </main>
           <Footer owner={metadata.owner} />
         </ThemeProvider>
