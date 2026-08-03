@@ -122,19 +122,19 @@ export default function InstructionsDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-<Button
-  ref={triggerRef}
-  variant="ghost"
-  className="h-auto px-1.5 py-1 text-xs font-medium leading-none inline-flex items-center gap-1 text-muted-foreground hover:text-foreground md:px-3 md:py-2 md:text-sm"
-  aria-expanded={open}
-  aria-controls="instructions-dialog"
-  aria-label={open ? "Close instructions" : "Open instructions"}
->
-  <HelpCircle className="h-3 w-3 shrink-0 md:h-4 md:w-4" />
-  Help
-</Button>
-      </DialogTrigger>
+<DialogTrigger asChild>
+  <button
+    ref={triggerRef}
+    type="button"
+    className="inline-flex items-center gap-1 px-1.5 py-1 text-xs font-medium leading-none rounded-md transition-colors text-muted-foreground hover:text-foreground hover:bg-muted md:px-3 md:py-2 md:text-sm"
+    aria-expanded={open}
+    aria-controls="instructions-dialog"
+    aria-label={open ? "Close instructions" : "Open instructions"}
+  >
+    <HelpCircle className="size-3 md:size-4" />
+    Help
+  </button>
+</DialogTrigger>
       <DialogContent
         id="instructions-dialog"
         className="sm:max-w-[550px] max-h-[80vh] overflow-y-auto"
