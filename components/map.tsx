@@ -25,6 +25,7 @@ function applyProjectionForZoom(mapInstance: mapboxgl.Map) {
   if (mapInstance.getZoom() >= GLOBE_TO_MERCATOR_ZOOM) {
     mapInstance.setProjection("mercator");
   } else {
+    mapInstance.setPadding({ top: 0, bottom: 0, left: 0, right: 0 });
     mapInstance.setProjection("globe");
     mapInstance.setFog({
       color: "rgb(186, 210, 235)",
