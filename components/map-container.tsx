@@ -185,8 +185,8 @@ export default function MapContainer({ mediaPoints }: MapContainerProps) {
   );
 
   return (
-    <div className="w-full relative h-[calc(100vh-4rem)]">
-      {isTablet ? (
+<div className="w-full relative h-full min-h-0 overflow-hidden">
+  {isTablet ? (
         // Mobile/tablet: map full-bleed with overlay bottom-sheet drawer
         <div className="relative w-full h-full overflow-hidden">
           <Map
