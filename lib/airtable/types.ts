@@ -50,6 +50,12 @@ export interface MediaLocation {
   media?: Media;
 }
 
+/** A unique Media (film) record shown in map search results. */
+export interface MediaSearchResult {
+  id: string;
+  media: Media;
+}
+
 export interface MapFilters {
   countries: string[];
   regions: string[];
