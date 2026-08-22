@@ -7,7 +7,7 @@ import { collectMatchingMedia, matchesSearch } from "@/lib/search";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Map } from "@/components/map";
-import { STYLES, MapStyle, takeScreenshot } from "@/lib/map-utils";
+import { STYLES, MapStyle, takeScreenshot, DEFAULT_ZOOM } from "@/lib/map-utils";
 import { MapDrawer } from "./map-drawer";
 import { MapToolbar } from "./map-toolbar";
 import { BasemapToggle } from "./basemap-toggle";
@@ -231,6 +231,7 @@ export default function MapContainer({ mediaPoints }: MapContainerProps) {
             styleUrl={STYLES[mapStyle]}
             onMapReady={handleMapReady}
             fitToDataBounds={!!mediaId}
+            fitBoundsMaxZoom={DEFAULT_ZOOM}
             fitBoundsDuration={mediaId ? 1000 : 0}
             enableInitialRandomSelection={!mediaId}
           />
@@ -264,6 +265,7 @@ export default function MapContainer({ mediaPoints }: MapContainerProps) {
               styleUrl={STYLES[mapStyle]}
               onMapReady={handleMapReady}
               fitToDataBounds={!!mediaId}
+              fitBoundsMaxZoom={DEFAULT_ZOOM}
               fitBoundsDuration={mediaId ? 1000 : 0}
               enableInitialRandomSelection={!mediaId}
             />
