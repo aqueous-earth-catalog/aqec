@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import mapboxgl, { LngLatBoundsLike } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { MapFilters, MediaLocation } from "@/lib/airtable/types";
-import { addQueryParameter, hasActiveFilters } from "@/lib/utils";
+import { hasActiveFilters, updateQueryParameters } from "@/lib/utils";
 import { useIsTablet } from "@/components/hooks/use-tablet";
 
 import {
@@ -67,6 +67,7 @@ interface MapProps {
   /** Collections: stay fitted to bounds instead of globe zoom. */
   fitToDataBounds?: boolean;
   fitBoundsMaxZoom?: number;
+  fitBoundsDuration?: number;
 }
 
 export function Map({
@@ -80,12 +81,14 @@ export function Map({
   onPointClick,
   fitToDataBounds = false,
   fitBoundsMaxZoom = 10,
+  fitBoundsDuration = 0,
 }: MapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const searchParams = useSearchParams();
   const mediaPointId = searchParams.get("mediaPointId");
+  const mediaId = searchParams.get("mediaId");
   const onPointClickRef = useRef(onPointClick);
   onPointClickRef.current = onPointClick;
   const prevSelectedIdRef = useRef<string | null>(null);
@@ -181,23 +184,32 @@ applyProjectionForZoom(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [styleUrl, isMapLoaded]);
 
-   useEffect(() => {
-    if (!map.current || !isMapLoaded || !bounds) return;
+    useEffect(() => {
+  if (!map.current || !isMapLoaded || !bounds) return;
 
-    if (fitToDataBounds) {
-      // Collections: refit when collection pins change
-      map.current.fitBounds(bounds, {
-        duration: 0,
-        maxZoom: fitBoundsMaxZoom,
-        padding: 48,
-      });
-    } else if (!hasSetCatalogBoundsRef.current) {
-      // Catalog map view: set globe once on load — don't reset after pin zoom
-      map.current.fitBounds(bounds, { duration: 0 });
-      map.current.setZoom(MAP_CATALOG_ZOOM);
-      hasSetCatalogBoundsRef.current = true;
-    }
-  }, [isMapLoaded, bounds, fitToDataBounds, fitBoundsMaxZoom]);
+  if (fitToDataBounds) {
+    const containerHeight = map.current.getContainer().clientHeight;
+    const padding = isTablet
+      ? {
+          top: 48,
+          left: 48,
+          right: 48,
+          bottom: Math.max(48, Math.round(containerHeight * 0.6)),
+        }
+      : 48;
+
+    map.current.fitBounds(bounds, {
+      duration: fitBoundsDuration,
+      maxZoom: fitBoundsMaxZoom,
+      padding,
+    });
+  } else if (!hasSetCatalogBoundsRef.current) {
+    // Catalog map view: set globe once on load — don't reset after pin zoom
+    map.current.fitBounds(bounds, { duration: 0 });
+    map.current.setZoom(MAP_CATALOG_ZOOM);
+    hasSetCatalogBoundsRef.current = true;
+  }
+}, [isMapLoaded, bounds, fitToDataBounds, fitBoundsMaxZoom, fitBoundsDuration, isTablet]);
 
     useEffect(() => {
     if (!map.current || !isMapLoaded) return;
@@ -242,22 +254,27 @@ applyProjectionForZoom(
 }, [isMapLoaded, selectedMediaPoint, onPointClick, isTablet]);
   
   useEffect(() => {
-    if (
-      enableInitialRandomSelection === false ||
-      selectedMediaPoint ||
-      !isMapLoaded ||
-      data.length === 0 ||
-      hasActiveFilters(filters)
-    ) {
-      return;
-    }
+if (
+  enableInitialRandomSelection === false ||
+  selectedMediaPoint ||
+  mediaId ||
+  !isMapLoaded ||
+  data.length === 0 ||
+  hasActiveFilters(filters)
+) {
+  return;
+}
 
-    const randomIndex = Math.floor(Math.random() * data.length);
-    window.history.pushState(
-      {},
-      "",
-      addQueryParameter("mediaPointId", data[randomIndex].id)
-    );
+const randomIndex = Math.floor(Math.random() * data.length);
+window.history.pushState(
+  {},
+  "",
+  updateQueryParameters({
+    mediaPointId: data[randomIndex].id,
+    mediaId: null,
+  })
+);
+    
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMapLoaded]);
 
