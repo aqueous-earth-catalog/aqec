@@ -86,6 +86,23 @@ export function addQueryParameter(
   return `?${params.toString()}`;
 }
 
+/** Update URL query params. Pass `null` to remove a key. */
+export function updateQueryParameters(
+  updates: Record<string, string | null>
+): string {
+  const params = new URLSearchParams(window.location.search);
+  for (const [key, value] of Object.entries(updates)) {
+    if (value === null || value === "") {
+      params.delete(key);
+    } else {
+      params.set(key, value);
+    }
+  }
+  const qs = params.toString();
+  return qs ? `?${qs}` : "/";
+}
+
+
 /** URL query parameter keys used for map filters */
 export const FILTER_PARAMS = [
   "country",
