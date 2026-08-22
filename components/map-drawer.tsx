@@ -10,16 +10,21 @@ import {
   PanelLeftOpen,
   X,
 } from "lucide-react";
-import { MediaLocation } from "@/lib/airtable/types";
-import { filterSearchParamKeys, removeQueryParameter } from "@/lib/utils";
+import { MediaLocation, MediaSearchResult } from "@/lib/airtable/types";
+import {
+  filterSearchParamKeys,
+  updateQueryParameters,
+} from "@/lib/utils";
 import { Button } from "./ui/button";
 import Search from "./search";
-import { ResultCard } from "./result-card";
+import { MediaResultCard, ResultCard } from "./result-card";
 import { LocationDetails } from "./location-details";
+import { MediaDetails } from "./media-details";
 import { useIsTablet } from "./hooks/use-tablet";
 
 interface MapDrawerProps {
   searchedMediaPoints: MediaLocation[];
+  searchedMediaResults: MediaSearchResult[];
   allMediaPoints: MediaLocation[];
   searchValue: string;
   onSearchChange: (value: string) => void;
@@ -32,6 +37,7 @@ interface MapDrawerProps {
 
 export function MapDrawer({
   searchedMediaPoints,
+  searchedMediaResults,
   allMediaPoints,
   searchValue,
   onSearchChange,
@@ -43,6 +49,7 @@ export function MapDrawer({
 }: MapDrawerProps) {
   const searchParams = useSearchParams();
   const mediaPointId = searchParams.get("mediaPointId");
+  const mediaId = searchParams.get("mediaId");
   const isMobile = useIsTablet();
   const drawerRef = useRef<HTMLDivElement>(null);
 
@@ -81,9 +88,28 @@ export function MapDrawer({
     ? allMediaPoints.find((point) => point.id === mediaPointId)
     : null;
 
+  const selectedMediaLocation = mediaId
+    ? allMediaPoints.find((point) => point.media_id === mediaId)
+    : null;
+  const selectedMedia = selectedMediaLocation?.media ?? null;
+  const selectedMediaLocations = mediaId
+    ? allMediaPoints.filter((point) => point.media_id === mediaId)
+    : [];
+
+  const showingDetails = Boolean(selectedMediaPoint || selectedMedia);
+
   function handleBack() {
-    window.history.pushState({}, "", removeQueryParameter("mediaPointId"));
+    window.history.pushState(
+      {},
+      "",
+      updateQueryParameters({
+        mediaPointId: null,
+        mediaId: null,
+      })
+    );
   }
+
+  const resultCount = searchedMediaResults.length + searchedMediaPoints.length;
 
   // Keyboard support: Escape key closes detail view or drawer
   useEffect(() => {
@@ -91,7 +117,7 @@ export function MapDrawer({
 
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {
-        if (selectedMediaPoint) {
+        if (showingDetails) {
           handleBack();
         } else {
           onToggle();
@@ -101,14 +127,14 @@ export function MapDrawer({
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, selectedMediaPoint, onToggle]);
+  }, [isOpen, showingDetails, onToggle]);
 
   // Focus drawer when it opens
   useEffect(() => {
     if (isOpen && drawerRef.current) {
       drawerRef.current.focus();
     }
-  }, [isOpen, selectedMediaPoint]);
+  }, [isOpen, selectedMediaPoint, selectedMedia]);
 
   // Closed state: show toggle button
   if (!isOpen) {
@@ -140,9 +166,14 @@ export function MapDrawer({
     );
   }
 
+  const detailsAriaLabel = selectedMediaPoint
+    ? "Location details"
+    : selectedMedia
+      ? "Media details"
+      : "Search results";
+
   // Drawer content (shared between mobile and desktop)
   const drawerContent = selectedMediaPoint ? (
-    /* Detail view */
     <div className="flex flex-col overflow-hidden flex-1 min-w-0">
       <div className="flex items-center justify-between px-3 pt-2 shrink-0">
         <Button
@@ -175,8 +206,37 @@ export function MapDrawer({
         />
       </div>
     </div>
+  ) : selectedMedia && mediaId ? (
+    <div className="flex flex-col overflow-hidden flex-1 min-w-0">
+      <div className="flex items-center justify-between px-3 pt-2 shrink-0">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleBack}
+          className="gap-1 -ml-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Results
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onToggle}
+          aria-label="Close panel"
+          className="h-8 w-8"
+        >
+          {isMobile ? (
+            <ChevronDown className="h-4 w-4" />
+          ) : (
+            <PanelLeftClose className="h-4 w-4" />
+          )}
+        </Button>
+      </div>
+      <div className="overflow-y-auto flex-1 styled-scrollbar">
+        <MediaDetails media={selectedMedia} locations={selectedMediaLocations} />
+      </div>
+    </div>
   ) : (
-    /* Search + Results list */
     <div className="flex flex-col overflow-hidden flex-1 min-w-0">
       <div className="flex items-center gap-2 p-3 shrink-0">
         <div className="flex-1">
@@ -198,8 +258,7 @@ export function MapDrawer({
       </div>
       <div className="flex items-center justify-between px-3 py-2 shrink-0">
         <span className="text-xs text-muted-foreground">
-          {searchedMediaPoints.length} result
-          {searchedMediaPoints.length !== 1 ? "s" : ""}
+          {resultCount} result{resultCount !== 1 ? "s" : ""}
         </span>
         {hasActiveFilters && (
           <Button
@@ -214,6 +273,29 @@ export function MapDrawer({
         )}
       </div>
       <div className="overflow-y-auto flex-1 styled-scrollbar">
+        {searchedMediaResults.length > 0 && (
+          <>
+            <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Media
+            </div>
+            {searchedMediaResults.map((item) => (
+              <MediaResultCard
+                key={item.id}
+                id={item.id}
+                media={item.media}
+                isSelected={item.id === mediaId}
+              />
+            ))}
+          </>
+        )}
+        {searchedMediaResults.length > 0 && searchedMediaPoints.length > 0 && (
+          <>
+            <div className="mx-3 my-1 border-t border-border" />
+            <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Media locations
+            </div>
+          </>
+        )}
         {searchedMediaPoints.map((media) => (
           <ResultCard
             key={media.id}
@@ -221,7 +303,7 @@ export function MapDrawer({
             isSelected={media.id === mediaPointId}
           />
         ))}
-        {searchedMediaPoints.length === 0 && (
+        {resultCount === 0 && (
           <div className="p-4 text-sm text-muted-foreground text-center">
             No results found.
           </div>
@@ -237,7 +319,7 @@ export function MapDrawer({
         ref={drawerRef}
         tabIndex={-1}
         role="region"
-        aria-label={selectedMediaPoint ? "Location details" : "Search results"}
+        aria-label={detailsAriaLabel}
         className="absolute bottom-0 left-0 right-0 z-10 h-[60%] bg-background flex flex-col shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] rounded-t-2xl focus:outline-none"
       >
         {drawerContent}
@@ -251,7 +333,7 @@ export function MapDrawer({
       ref={drawerRef}
       tabIndex={-1}
       role="region"
-      aria-label={selectedMediaPoint ? "Location details" : "Search results"}
+      aria-label={detailsAriaLabel}
       className="relative h-full z-10 bg-background flex flex-col shadow-lg focus:outline-none min-w-0 overflow-hidden"
       style={{ width: drawerWidthPx > 0 ? drawerWidthPx : "40vw" }}
     >
