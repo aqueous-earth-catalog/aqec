@@ -1,6 +1,6 @@
-import { MediaLocation } from "@/lib/airtable/types";
+import { Media, MediaLocation } from "@/lib/airtable/types";
 import { Badge } from "./ui/badge";
-import { addQueryParameter } from "@/lib/utils";
+import { updateQueryParameters } from "@/lib/utils";
 
 interface ResultCardProps {
   media: MediaLocation;
@@ -9,8 +9,14 @@ interface ResultCardProps {
 
 export function ResultCard({ media, isSelected }: ResultCardProps) {
   function handleSelect() {
-    const params = addQueryParameter("mediaPointId", media.id);
-    window.history.pushState({}, "", params);
+    window.history.pushState(
+      {},
+      "",
+      updateQueryParameters({
+        mediaPointId: media.id,
+        mediaId: null,
+      })
+    );
   }
 
   return (
@@ -19,7 +25,7 @@ export function ResultCard({ media, isSelected }: ResultCardProps) {
       className={`w-full text-left p-3 border-b border-border hover:bg-accent/50 transition-colors cursor-pointer ${
         isSelected ? "bg-accent" : ""
       }`}
-      aria-label={`Select ${media.name}`}
+      aria-label={`Select Media location ${media.name}`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 space-y-2">
@@ -35,11 +41,58 @@ export function ResultCard({ media, isSelected }: ResultCardProps) {
             </p>
           )}
         </div>
-        {media.media?.media_type && (
-          <Badge variant="secondary" className="capitalize text-xs shrink-0">
-            {media.media.media_type}
-          </Badge>
-        )}
+        <Badge variant="secondary" className="text-xs shrink-0">
+          Media location
+        </Badge>
+      </div>
+    </button>
+  );
+}
+
+interface MediaResultCardProps {
+  id: string;
+  media: Media;
+  isSelected: boolean;
+}
+
+export function MediaResultCard({
+  id,
+  media,
+  isSelected,
+}: MediaResultCardProps) {
+  function handleSelect() {
+    window.history.pushState(
+      {},
+      "",
+      updateQueryParameters({
+        mediaId: id,
+        mediaPointId: null,
+      })
+    );
+  }
+
+  return (
+    <button
+      onClick={handleSelect}
+      className={`w-full text-left p-3 border-b border-border hover:bg-accent/50 transition-colors cursor-pointer ${
+        isSelected ? "bg-accent" : ""
+      }`}
+      aria-label={`Select Media ${media.name}`}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0 space-y-2">
+          <p className="font-medium text-sm truncate">
+            {media.name} {media.release_year && `(${media.release_year})`}
+          </p>
+          {media.director && (
+            <p className="text-xs text-muted-foreground truncate">
+              {media.director}
+            </p>
+          )}
+        </div>
+        <Badge variant="secondary" className="text-xs shrink-0">
+          Media
+        </Badge>
       </div>
     </button>
   );
