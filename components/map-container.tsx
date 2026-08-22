@@ -3,7 +3,7 @@
 import { MapFilters, MediaLocation } from "@/lib/airtable/types";
 import { ENABLE_REGION_FILTER } from "@/lib/feature-flags";
 import { cn, computeMapBounds } from "@/lib/utils";
-import { matchesSearch } from "@/lib/search";
+import { collectMatchingMedia, matchesSearch } from "@/lib/search";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Map } from "@/components/map";
@@ -34,7 +34,7 @@ function maxDrawerWidthPx(): number {
   return Math.floor(window.innerWidth * 0.5);
 }
 
-function clampDrawerWidthPx(w: number): number {
+function clampDrawerWidthPx(w: number) {
   const max = maxDrawerWidthPx();
   return Math.min(max, Math.max(MIN_DRAWER_WIDTH_PX, Math.round(w)));
 }
@@ -49,11 +49,13 @@ responsive while users refine search and filter criteria.
 export default function MapContainer({ mediaPoints }: MapContainerProps) {
   const searchParams = useSearchParams();
   const mediaPointId = searchParams.get("mediaPointId");
+  const mediaId = searchParams.get("mediaId");
   const [prevMediaPointId, setPrevMediaPointId] = useState(mediaPointId);
+  const [prevMediaId, setPrevMediaId] = useState(mediaId);
   const [drawerOpen, setDrawerOpen] = useState(true);
   const [mapStyle, setMapStyle] = useState<MapStyle>("standard");
   const [searchValue, setSearchValue] = useState("");
-   // 0 = no measured width yet; drawer renders CSS 40vw until the layout effect runs.
+  // 0 = no measured width yet; drawer renders CSS 40vw until the layout effect runs.
   const [drawerWidthPx, setDrawerWidthPx] = useState(0);
 
   useLayoutEffect(() => {
@@ -119,6 +121,12 @@ export default function MapContainer({ mediaPoints }: MapContainerProps) {
       setDrawerOpen(true);
     }
   }
+  if (mediaId !== prevMediaId) {
+    setPrevMediaId(mediaId);
+    if (mediaId) {
+      setDrawerOpen(true);
+    }
+  }
 
   const filters: MapFilters = useMemo(
     () => ({
@@ -177,12 +185,39 @@ export default function MapContainer({ mediaPoints }: MapContainerProps) {
     );
   }, [searchValue, filteredMediaPoints]);
 
+  const searchedMediaResults = useMemo(
+    () => collectMatchingMedia(filteredMediaPoints, searchValue),
+    [filteredMediaPoints, searchValue]
+  );
+
+  const selectedMediaLocations = useMemo(() => {
+    if (!mediaId) return [];
+    return mediaPoints.filter((point) => point.media_id === mediaId);
+  }, [mediaPoints, mediaId]);
+
+  const mapData = mediaId ? selectedMediaLocations : searchedMediaPoints;
+
   // Bounds are computed from filter results only (not search),
   // so the map doesn't refit on every keystroke.
+  // When a Media result is selected, fit to that film's related locations.
   const mapBounds = useMemo(
-    () => computeMapBounds(filteredMediaPoints),
-    [filteredMediaPoints]
+    () =>
+      computeMapBounds(mediaId ? selectedMediaLocations : filteredMediaPoints),
+    [filteredMediaPoints, mediaId, selectedMediaLocations]
   );
+
+  const drawerProps = {
+    searchedMediaPoints,
+    searchedMediaResults,
+    allMediaPoints: mediaPoints,
+    searchValue,
+    onSearchChange: setSearchValue,
+    isOpen: drawerOpen,
+    onToggle: handleDrawerToggle,
+    drawerWidthPx,
+    onDrawerWidthChange: handleDrawerWidthChange,
+    onDrawerWidthCommit: handleDrawerWidthCommit,
+  };
 
   return (
 <div className="w-full relative h-full min-h-0 overflow-hidden">
@@ -190,23 +225,16 @@ export default function MapContainer({ mediaPoints }: MapContainerProps) {
         // Mobile/tablet: map full-bleed with overlay bottom-sheet drawer
         <div className="relative w-full h-full overflow-hidden">
           <Map
-            data={searchedMediaPoints}
+            data={mapData}
             bounds={mapBounds}
             filters={filters}
             styleUrl={STYLES[mapStyle]}
             onMapReady={handleMapReady}
+            fitToDataBounds={!!mediaId}
+            fitBoundsDuration={mediaId ? 1000 : 0}
+            enableInitialRandomSelection={!mediaId}
           />
-          <MapDrawer
-            searchedMediaPoints={searchedMediaPoints}
-            allMediaPoints={mediaPoints}
-            searchValue={searchValue}
-            onSearchChange={setSearchValue}
-            isOpen={drawerOpen}
-            onToggle={handleDrawerToggle}
-            drawerWidthPx={drawerWidthPx}
-            onDrawerWidthChange={handleDrawerWidthChange}
-            onDrawerWidthCommit={handleDrawerWidthCommit}
-          />
+          <MapDrawer {...drawerProps} />
           <TooltipProvider>
             <div
               className={cn(
@@ -226,25 +254,18 @@ export default function MapContainer({ mediaPoints }: MapContainerProps) {
         // Desktop: true split view so the map stays fully visible
         <div className="w-full h-full overflow-hidden flex">
           {drawerOpen ? (
-            <MapDrawer
-              searchedMediaPoints={searchedMediaPoints}
-              allMediaPoints={mediaPoints}
-              searchValue={searchValue}
-              onSearchChange={setSearchValue}
-              isOpen={drawerOpen}
-              onToggle={handleDrawerToggle}
-              drawerWidthPx={drawerWidthPx}
-              onDrawerWidthChange={handleDrawerWidthChange}
-              onDrawerWidthCommit={handleDrawerWidthCommit}
-            />
+            <MapDrawer {...drawerProps} />
           ) : null}
           <div className="relative flex-1 min-w-0">
             <Map
-              data={searchedMediaPoints}
+              data={mapData}
               bounds={mapBounds}
               filters={filters}
               styleUrl={STYLES[mapStyle]}
               onMapReady={handleMapReady}
+              fitToDataBounds={!!mediaId}
+              fitBoundsDuration={mediaId ? 1000 : 0}
+              enableInitialRandomSelection={!mediaId}
             />
             <TooltipProvider>
               <div className="absolute top-3 z-20 left-1/2 -translate-x-1/2">
@@ -262,17 +283,7 @@ export default function MapContainer({ mediaPoints }: MapContainerProps) {
 
             {/* When closed, render the open button overlaying the map. */}
             {!drawerOpen ? (
-              <MapDrawer
-                searchedMediaPoints={searchedMediaPoints}
-                allMediaPoints={mediaPoints}
-                searchValue={searchValue}
-                onSearchChange={setSearchValue}
-                isOpen={drawerOpen}
-                onToggle={handleDrawerToggle}
-                drawerWidthPx={drawerWidthPx}
-                onDrawerWidthChange={handleDrawerWidthChange}
-                onDrawerWidthCommit={handleDrawerWidthCommit}
-              />
+              <MapDrawer {...drawerProps} />
             ) : null}
           </div>
         </div>
