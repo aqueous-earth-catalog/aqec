@@ -5,7 +5,7 @@
 
 import { GeoJSONSource, LngLatBoundsLike } from "mapbox-gl";
 import { MediaLocation } from "@/lib/airtable/types";
-import { addQueryParameter } from "@/lib/utils";
+import { addQueryParameter, updateQueryParameters } from "@/lib/utils";
 
 export const STYLES = {
   standard: "mapbox://styles/mapbox/standard",
@@ -189,7 +189,10 @@ export function addDataLayer(
       window.history.pushState(
         {},
         "",
-        addQueryParameter("mediaPointId", props.id)
+        updateQueryParameters({
+          mediaPointId: props.id,
+          mediaId: null,
+        })
       );
     });
 
