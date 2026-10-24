@@ -37,9 +37,12 @@ export function LocationDetails({
     (d) =>
       selectedMediaPoint?.media?.related_media_locations?.includes(d.id) &&
       d.id !== selectedMediaPoint.id
-  );
+ );
+const detailImage = selectedMediaPoint?.location_image?.url
+  ? selectedMediaPoint.location_image
+  : selectedMediaPoint?.media?.image;
 
-  return (
+return (
     <Card className="border-0 shadow-none rounded-none">
       <div className="px-4 pb-4">
         <CardHeader className="p-0">
@@ -76,17 +79,17 @@ export function LocationDetails({
             )}
           </div>
 
-{selectedMediaPoint?.media?.image?.url && (
+{detailImage?.url && (
   <div className="-mx-4 w-[calc(100%+2rem)] overflow-hidden bg-muted">
     <Image
-      src={selectedMediaPoint.media.image.url || ""}
+      src={detailImage.url || ""}
       alt={`Image from ${
         selectedMediaPoint.media.name || "unknown media"
       } (${
         selectedMediaPoint.media.release_year || "unknown year"
       }) by ${selectedMediaPoint.media.director || "unknown director"}`}
-      width={selectedMediaPoint.media.image.width || 1600}
-      height={selectedMediaPoint.media.image.height || 900}
+      width={detailImage.width || 1600}
+      height={detailImage.height || 900}
       sizes="(min-width: 1024px) 50vw, 100vw"
       className="w-full h-auto"
     />
