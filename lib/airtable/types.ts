@@ -46,6 +46,7 @@ export interface MediaLocation {
   city?: string;
   region?: string;
   country?: string;
+  location_image?: MediaImage;
   media_id?: string;
   media?: Media;
 }
